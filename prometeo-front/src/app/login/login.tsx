@@ -10,7 +10,9 @@ export default function Login() {
 
   const handleLogin = () => {
     if (email === "admin@prometeo.com" && password === "123456") {
-      router.push("/dashboard"); // Redirige al dashboard
+
+      router.push("/dashboard/metrics"); // Redirige al dashboard
+
     } else {
       alert("Usuario o contraseña incorrectos");
     }
