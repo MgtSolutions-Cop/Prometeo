@@ -1,0 +1,107 @@
+/* src/app/dashboard/Header.module.css */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.iconWrap {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.titles {
+  line-height: 1;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.0625rem; /* ~17px */
+  color: #ffffff;
+}
+
+.username {
+  color: #F06292; /* prometeo pink */
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.72);
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.search {
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  background: #0d0d0d;
+  border: 1px solid rgba(255,255,255,0.04);
+  color: #fff;
+  outline: none;
+  min-width: 160px;
+}
+
+.iconButton {
+  position: relative;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #F06292;
+  color: #000;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 2px solid rgba(255,255,255,0.06);
+  object-fit: cover;
+}
+
+/* responsive */
+@media (max-width: 768px) {
+  .search { display: none; }
+  .subtitle { display: none; }
+}
