@@ -1,0 +1,64 @@
+/* src/app/dashboard/Dashboard.module.css */
+.container {
+  background-color: #1A1A1A; /* prometeoBlack */
+  color: #FFFFFF; /* prometeoWhite */
+  min-height: 100vh;
+  display: flex;
+}
+
+.sidebar {
+  width: 16rem; /* 64 Tailwind equiv */
+  background-color: #8B0000; /* prometeoRedDark */
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+.navLink {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.navLink:hover {
+  background-color: #E53935; /* prometeoRed */
+}
+
+.logout {
+  margin-top: auto;
+  text-align: center;
+  font-weight: 600;
+  background-color: #F06292; /* prometeoPink */
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+  color: #000;
+  text-decoration: none;
+}
+
+.logout:hover {
+  background-color: #E53935;
+}
+
+.main {
+  flex: 1;
+  padding: 2rem;
+  background-color: #2E2E2E; /* prometeoGray */
+  overflow-y: auto;
+}

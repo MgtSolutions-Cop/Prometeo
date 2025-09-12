@@ -1,0 +1,36 @@
+/* src/app/Landing.module.css */
+.button {
+  background-color: #8B0000; /* prometeoRedDark */
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.button:hover {
+  background-color: #E53935; /* prometeoRed */
+  color: #ffffff;
+}
+
+.registerButton {
+  background-color: #1A1A1A; /* prometeoBlack */
+  border: 1px solid #8B0000; /* prometeoRedDark */
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.registerButton:hover {
+  background-color: #8B0000; /* prometeoRedDark */
+  color: #ffffff;
+}
