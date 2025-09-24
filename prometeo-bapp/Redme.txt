@@ -1,0 +1,14 @@
+prometeo-bapp/
+├── auth/                 # Configuraciones de autenticación
+├── config/               # Configuraciones generales
+│   └── db.js            # Configuración de la base de datos
+├── controllers/          # Lógica de negocio
+│   └── authController.js # Controlador de autenticación
+├── middlewares/          # Intermediarios de las rutas
+│   └── authMiddleware.js # Middleware de autenticación
+├── models/               # Modelos de datos
+│   ├── Role.js          # Modelo de roles
+│   └── User.js          # Modelo de usuarios
+├── routes/               # Definición de rutas
+│   └── authRoutes.js    # Rutas de autenticación
+└── serverauth.js        # Punto de entrada de la aplicación

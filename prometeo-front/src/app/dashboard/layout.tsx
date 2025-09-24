@@ -1,5 +1,8 @@
-// src/app/dashboard/layout.tsx
+
+
 import Link from "next/link"; // Importar Link de Next
+
+
 import styles from "./Dashboard.module.css";
 import Header from "./header"; 
 
@@ -18,6 +21,7 @@ export default function DashboardLayout({
         </div>
 
         <nav className={styles.nav}>
+
           <Link href="/dashboard/metrics" className={styles.navLink}>
             📈 Metricas
           </Link>
