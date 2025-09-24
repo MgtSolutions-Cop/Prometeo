@@ -1,4 +1,8 @@
-// src/app/dashboard/layout.tsx
+
+
+import Link from "next/link"; // Importar Link de Next
+
+
 import styles from "./Dashboard.module.css";
 import Header from "./header"; 
 
@@ -17,15 +21,25 @@ export default function DashboardLayout({
         </div>
 
         <nav className={styles.nav}>
-          <a href="#" className={styles.navLink}>
-            📂 Archivos
-          </a>
-          <a href="#" className={styles.navLink}>
-            ⭐ Favoritos
-          </a>
-          <a href="#" className={styles.navLink}>
-            ⚙️ Configuración
-          </a>
+
+          <Link href="/dashboard/metrics" className={styles.navLink}>
+            📈 Metricas
+          </Link>
+          <Link href="/dashboard/radicar" className={styles.navLink}>
+            📨 Radicacion
+          </Link>
+          <Link href="/dashboard/document.management" className={styles.navLink}>
+            🗃️ Gestion documental
+          </Link>
+          <Link href="/dashboard/pending.activities" className={styles.navLink}>
+            📝 Actividades Pendientes
+          </Link>
+          <Link href="/dashboard/user.management" className={styles.navLink}>
+          👥 Gestion de usuarios 
+          </Link>
+          <Link href="/dashboard/create.dependencies" className={styles.navLink}>
+          🏬 Crear dependencias 
+          </Link>
         </nav>
 
         <a href="/login" className={styles.logout}>
