@@ -6,6 +6,8 @@ import Link from "next/link"; // Importar Link de Next
 import styles from "./Dashboard.module.css";
 import Header from "./header"; 
 
+
+
 export default function DashboardLayout({
   children,
 }: {
