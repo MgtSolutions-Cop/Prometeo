@@ -22,3 +22,37 @@ export async function login(req,res) {
     }
     
 }
+
+
+export async function refresh(req, res) {
+    try {
+      const token = req.cookies.refreshToken;
+      if (!token) {
+        return res.status(401).json({ message: "No refresh token provided" });
+      }
+  
+      const decoded = verifyRefreshToken(token);
+  
+      // Generamos un nuevo accessToken
+      const newAccessToken = generateAccessToken({ user_id: decoded.user_id });
+  
+      // Guardamos el nuevo accessToken en cookie
+      res.cookie("accessToken", newAccessToken, {
+        httpOnly: true,
+        secure: false, // en producción: true con HTTPS
+        sameSite: "strict",
+        maxAge: 15 * 60 * 1000, // 15 min
+      });
+  
+      return res.json({ message: "Token refreshed" });
+    } catch (error) {
+      console.error(error);
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+  }
+  
+  export async function logout(req, res) {
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    return res.json({ message: "Logged out successfully" });
+  }

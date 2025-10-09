@@ -2,6 +2,36 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { pool } from "../../config/db.js";
 
+
+const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "refreshsecret";
+
+// generar access token (vida corta)
+export function generateAccessToken(user) {
+  return jwt.sign(
+    {
+      user_id: user.user_id,
+      role_id: user.role_id,
+      entity_id: user.entity_id,
+    },
+    JWT_SECRET,
+    { expiresIn: "15m" }
+  );
+}
+
+// generar refresh token (vida larga)
+export function generateRefreshToken(user) {
+  return jwt.sign({ user_id: user.user_id }, JWT_REFRESH_SECRET, {
+    expiresIn: "7d",
+  });
+}
+
+// verificar refresh token
+export function verifyRefreshToken(token) {
+  return jwt.verify(token, JWT_REFRESH_SECRET);
+}
+
+
 export async function loginServices(email,password) {
   //buscamos el user
   const result= await pool.query("SELECT * FROM users WHERE email = $1",[email]); 
@@ -37,3 +67,4 @@ export async function loginServices(email,password) {
     },
   };
 }
+
