@@ -1,12 +1,8 @@
-
-
 import Link from "next/link"; // Importar Link de Next
-
-
 import styles from "./Dashboard.module.css";
 import Header from "./header"; 
-
-
+import { FaFolderOpen,FaChartLine,FaEnvelopeOpenText } from "react-icons/fa";
+import { FaClipboardList,FaUsersBetweenLines,FaSchoolCircleCheck} from "react-icons/fa6";
 
 export default function DashboardLayout({
   children,
@@ -23,25 +19,48 @@ export default function DashboardLayout({
         </div>
 
         <nav className={styles.nav}>
-
           <Link href="/dashboard/metrics" className={styles.navLink}>
-            📈 Metricas
+           <div className={styles.navItem}>
+           <FaChartLine/>
+           <span>Metricas</span>
+           </div>
           </Link>
+          
           <Link href="/dashboard/radicar" className={styles.navLink}>
-            📨 Radicacion
+            <div className={styles.navItem}>
+              <FaEnvelopeOpenText/>
+            <span>Radicacion</span>
+            </div>
           </Link>
+
           <Link href="/dashboard/document.management" className={styles.navLink}>
-            🗃️ Gestion documental
+          <div className={styles.navItem}>
+          <FaFolderOpen/> 
+          <span>Gestion documental</span>
+          </div>
           </Link>
+
           <Link href="/dashboard/pending.activities" className={styles.navLink}>
-            📝 Actividades Pendientes
+          <div className={styles.navItem}>
+            <FaClipboardList/>
+            <span>Actividades Pendientes</span>
+            </div>
           </Link>
+
           <Link href="/dashboard/user.management" className={styles.navLink}>
-          👥 Gestion de usuarios 
+          <div className={styles.navItem}>
+            <FaUsersBetweenLines/>
+          <span>Gestion de usuarios</span> 
+          </div>
           </Link>
+
           <Link href="/dashboard/create.dependencies" className={styles.navLink}>
-          🏬 Crear dependencias 
+         <div className={styles.navItem}>
+          <FaSchoolCircleCheck/>
+         <span>Crear dependencias</span>  
+         </div>
           </Link>
+          
         </nav>
 
         <a href="/login" className={styles.logout}>
