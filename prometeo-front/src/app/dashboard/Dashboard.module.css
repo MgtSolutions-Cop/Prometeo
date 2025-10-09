@@ -21,6 +21,16 @@
   margin-bottom: 2.5rem;
 }
 
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon {
+  font-size: 1rem;
+}
+
 .nav {
   display: flex;
   flex-direction: column;
@@ -29,7 +39,7 @@
 }
 
 .navLink {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem;
   border-radius: 0.5rem;
   transition: background-color 0.2s ease;
   color: #ffffff;
