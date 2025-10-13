@@ -18,9 +18,6 @@ export default function LandingPage() {
         <a href="/login" className={styles.button}>
           Iniciar sesión
         </a>
-        <a href="/register" className={styles.registerButton}>
-          Registrarse
-        </a>
       </div>
 
       <footer className="mt-12 text-sm text-gray-400">
