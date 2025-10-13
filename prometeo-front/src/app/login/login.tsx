@@ -1,22 +1,27 @@
-"use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./login.module.css";
+import { loginUser } from "../services/api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (email === "admin@prometeo.com" && password === "123456") {
+  const handleLogin = async () => {
+    try {
+      setLoading(true);
+      const data = await loginUser(email, password);
 
-      router.push("/dashboard/metrics"); // Redirige al dashboard
+      // Puedes guardar info del usuario si viene en la respuesta:
+      console.log("Login exitoso:", data);
 
-
-
-    } else {
-      alert("Usuario o contraseña incorrectos");
+      router.push("/dashboard/metrics");
+    } catch (error: any) {
+      alert(error.message || "Credenciales incorrectas");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,12 +43,14 @@ export default function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <button className={styles.loginButton} onClick={handleLogin}>
-          Ingresar
+        <button
+          className={styles.loginButton}
+          onClick={handleLogin}
+          disabled={loading}
+        >
+          {loading ? "Ingresando..." : "Ingresar"}
         </button>
-        <p className={styles.footerText}><a href="/register" className="text-prometeo-pink">Registrarme</a></p>
-        <p className={styles.footerText}>¿Olvidaste tu contraseña? </p>
-        
+        <p className={styles.footerText}>¿Olvidaste tu contraseña?</p>
       </div>
     </div>
   );

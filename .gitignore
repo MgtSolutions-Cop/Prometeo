@@ -9,6 +9,7 @@ build/
 
 # dependencies
 /node_modules
+/prometeo-front/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -22,6 +23,7 @@ build/
 
 # next.js
 /.next/
+/proemteo-front/.next/
 .next/
 /out/
 
