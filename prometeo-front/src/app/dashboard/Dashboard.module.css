@@ -6,12 +6,19 @@
   display: flex;
 }
 
+/* ==== SIDEBAR ==== */
 .sidebar {
   width: 16rem; /* 64 Tailwind equiv */
   background-color: #8B0000; /* prometeoRedDark */
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
+  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.4);
+  transition: width 0.3s ease;
+}
+
+.sidebar:hover {
+  width: 17rem;
 }
 
 .logo {
@@ -21,16 +28,7 @@
   margin-bottom: 2.5rem;
 }
 
-.navItem {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.icon {
-  font-size: 1rem;
-}
-
+/* ==== NAVEGACIÓN ==== */
 .nav {
   display: flex;
   flex-direction: column;
@@ -41,15 +39,36 @@
 .navLink {
   padding: 0.5rem;
   border-radius: 0.5rem;
-  transition: background-color 0.2s ease;
-  color: #ffffff;
+  color: #ffffff; /*color iconos y texto inicial*/
   text-decoration: none;
+  transition: all 0.3s ease;
 }
 
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: transform 0.3s ease;
+}
+
+/* Tamaño y animación de íconos */
+.icon {
+  font-size: 1.6rem; /* aumentado */
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+/* Hover con animación */
 .navLink:hover {
-  background-color: #E53935; /* prometeoRed */
+  background-color: #750000; /* prometeoRed */
+  transform: translateX(10px);
 }
 
+.navLink:hover .icon {
+  transform: scale(1.4) rotate(8deg);
+  color: white; /* color icono animacion */
+}
+
+/* ==== LOGOUT ==== */
 .logout {
   margin-top: auto;
   text-align: center;
@@ -57,15 +76,24 @@
   background-color: #F06292; /* prometeoPink */
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
-  transition: background-color 0.2s ease;
   color: #000;
   text-decoration: none;
+  transition: all 0.3s ease;
 }
 
 .logout:hover {
   background-color: #E53935;
+  color: #fff;
+  transform: scale(1.05);
 }
 
+/* Animación especial del ícono de logout */
+.logout:hover .icon {
+  transform: scale(1.5) rotate(-10deg);
+  color: #fff;
+}
+
+/* ==== CONTENIDO PRINCIPAL ==== */
 .main {
   flex: 1;
   padding: 2rem;

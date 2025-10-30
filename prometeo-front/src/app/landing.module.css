@@ -1,36 +1,66 @@
-/* src/app/Landing.module.css */
+/* 🎨 src/app/landing.module.css */
+
+/* === Botón principal de la landing === */
 .button {
-  background-color: #8B0000; /* prometeoRedDark */
-  color: #ffffff;
+  background-color: var(--prometeo-red-dark);
+  color: var(--prometeo-white);
   font-weight: 600;
   padding: 0.75rem 1.5rem;
   border-radius: 0.5rem;
   border: none;
   cursor: pointer;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: all var(--transition-base);
   text-decoration: none;
   display: inline-block;
+  box-shadow: 0 4px 15px rgba(139, 0, 0, 0.3);
+  animation: fadeIn 0.8s ease forwards;
 }
 
 .button:hover {
-  background-color: #E53935; /* prometeoRed */
-  color: #ffffff;
+  background-color: var(--prometeo-red);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(229, 57, 53, 0.4);
 }
 
-.registerButton {
-  background-color: #1A1A1A; /* prometeoBlack */
-  border: 1px solid #8B0000; /* prometeoRedDark */
-  color: #ffffff;
-  font-weight: 600;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  text-decoration: none;
-  display: inline-block;
+/* 💎 Animación de flotación del logo */
+.logo {
+  animation: float 3s ease-in-out infinite;
 }
 
-.registerButton:hover {
-  background-color: #8B0000; /* prometeoRedDark */
-  color: #ffffff;
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* ✨ Animación global para textos (Next.js requiere :global) */
+:global(h1),
+:global(p),
+:global(footer) {
+  animation: fadeIn 1s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 📱 Responsive */
+@media (max-width: 480px) {
+  .button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
+  }
 }

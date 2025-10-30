@@ -1,3 +1,5 @@
+// app/page.tsx
+import Link from "next/link";
 import styles from "./landing.module.css";
 
 export default function LandingPage() {
@@ -15,9 +17,9 @@ export default function LandingPage() {
       </p>
 
       <div className="flex gap-4">
-        <a href="/login" className={styles.button}>
+        <Link href="/login" className={styles.button}>
           Iniciar sesión
-        </a>
+        </Link>
       </div>
 
       <footer className="mt-12 text-sm text-gray-400">
