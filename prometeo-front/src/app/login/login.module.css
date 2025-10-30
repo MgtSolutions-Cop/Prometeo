@@ -1,65 +1,157 @@
-/* src/app/login/Login.module.css */
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* src/app/login/login.module.css
+   Compatibilidad: define alias para (.container / .loginContainer), (.loginBox / .loginCard), (.title / .loginTitle)
+   Usa variables globales definidas en globals.css:
+   --prometeo-black, --prometeo-gray, --prometeo-gray-light, --prometeo-red-dark, --prometeo-red, --prometeo-white, --transition-base, --font-family-base
+*/
+
+/* ----------------------
+   Contenedor principal (aliases)
+   ---------------------- */
+.container,
+.loginContainer {
   min-height: 100vh;
-  background-color: #1A1A1A; /* prometeoBlack */
-  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--prometeo-black);
+  color: var(--prometeo-white);
+  font-family: var(--font-family-base);
+  padding: 2rem;
 }
 
-.loginBox {
-  background-color: #2E2E2E; /* prometeoGray */
+/* ----------------------
+   Tarjeta / card del formulario (aliases)
+   ---------------------- */
+.loginBox,
+.loginCard {
+  background: var(--prometeo-gray);
   padding: 2.5rem;
   border-radius: 1rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
   width: 100%;
-  max-width: 400px;
+  max-width: 420px; /* controla el ancho para que no se desborde */
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  border: 1px solid rgba(255,255,255,0.04);
+  animation: fadeInUp 0.5s ease both;
 }
 
-.title {
-  font-size: 2rem;
+/* ----------------------
+   Título (aliases)
+   ---------------------- */
+.title,
+.loginTitle {
+  font-size: 1.6rem;
   font-weight: 700;
   text-align: center;
-  margin-bottom: 1rem;
-  color: #FFFFFF;
+  margin: 0;
+  color: var(--prometeo-white);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
 }
 
+/* ----------------------
+   Grupo de inputs (opcional)
+   ---------------------- */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ----------------------
+   Campos de entrada
+   ---------------------- */
 .inputField {
+  width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
-  border: 1px solid #8B0000; /* prometeoRedDark */
-  background-color: #1A1A1A; /* prometeoBlack */
-  color: #FFFFFF;
+  border: 1px solid rgba(255,255,255,0.06);
+  background-color: rgba(0,0,0,0.35); /* contraste con la card */
+  color: var(--prometeo-white);
   font-size: 1rem;
   outline: none;
-  transition: border-color 0.2s ease;
+  transition: all var(--transition-base);
+  box-sizing: border-box;
+}
+
+.inputField::placeholder {
+  color: rgba(255,255,255,0.45);
 }
 
 .inputField:focus {
-  border-color: #E53935; /* prometeoRed */
+  border-color: var(--prometeo-red);
+  box-shadow: 0 0 10px rgba(229,57,53,0.12);
 }
 
-.loginButton {
-  padding: 0.75rem 1rem;
+/* ----------------------
+   Botón principal (igual que landing)
+   ---------------------- */
+.loginButton,
+/* alias por si usas otro nombre */
+.buttonPrimary {
+  width: 100%;
+  padding: 0.9rem 1.4rem;
   border-radius: 0.5rem;
-  background-color: #8B0000; /* prometeoRedDark */
-  color: #FFFFFF;
+  background-color: var(--prometeo-red-dark);
+  color: var(--prometeo-white);
   font-weight: 600;
+  font-size: 1rem;
   border: none;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all var(--transition-base);
+  box-shadow: 0 4px 15px rgba(139, 0, 0, 0.3);
+  animation: fadeIn 0.6s ease forwards;
 }
 
-.loginButton:hover {
-  background-color: #E53935; /* prometeoRed */
+.loginButton:hover,
+.buttonPrimary:hover {
+  background-color: var(--prometeo-red);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 6px 24px rgba(229, 57, 53, 0.38);
 }
 
-.footerText {
+.loginButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ----------------------
+   Texto footer / ayuda (aliases)
+   ---------------------- */
+.footerText,
+.loginLink {
   text-align: center;
   font-size: 0.9rem;
-  color: #CCCCCC;
+  color: var(--prometeo-gray-light);
+  margin-top: 0.25rem;
+}
+
+/* ----------------------
+   Animaciones
+   ---------------------- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ----------------------
+   Responsive
+   ---------------------- */
+@media (max-width: 480px) {
+  .loginBox,
+  .loginCard {
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+
+  .loginButton {
+    padding: 0.85rem 1rem;
+  }
 }

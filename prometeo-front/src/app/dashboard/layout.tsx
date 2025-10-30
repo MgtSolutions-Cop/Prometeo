@@ -1,8 +1,17 @@
-import Link from "next/link"; // Importar Link de Next
+"use client";
+
+import Link from "next/link";
 import styles from "./Dashboard.module.css";
-import Header from "./header"; 
-import { FaFolderOpen,FaChartLine,FaEnvelopeOpenText } from "react-icons/fa";
-import { FaClipboardList,FaUsersBetweenLines,FaSchoolCircleCheck} from "react-icons/fa6";
+import Header from "./header";
+import {
+  FaChartBar,
+  FaEnvelope,
+  FaFolder,       // reemplazo de FaFolderTree
+  FaTasks,
+  FaUserCog,      // reemplazo de FaUserGear
+  FaBuilding,
+  FaSignOutAlt,
+} from "react-icons/fa";
 
 export default function DashboardLayout({
   children,
@@ -14,66 +23,63 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <aside className={styles.sidebar}>
         <div className={styles.logo}>
-          <img src="/logo.png" alt="Prometeo" width={40} height={40} />
-          <h2>Prometeo</h2>
+          <img src="/logo.png" alt="Prometeo" width={48} height={48} />
+          <h2>PROMETEO</h2>
         </div>
 
         <nav className={styles.nav}>
           <Link href="/dashboard/metrics" className={styles.navLink}>
-           <div className={styles.navItem}>
-           <FaChartLine/>
-           <span>Metricas</span>
-           </div>
+            <div className={styles.navItem}>
+              <FaChartBar className={styles.icon} />
+              <span>Métricas</span>
+            </div>
           </Link>
-          
+
           <Link href="/dashboard/radicar" className={styles.navLink}>
             <div className={styles.navItem}>
-              <FaEnvelopeOpenText/>
-            <span>Radicacion</span>
+              <FaEnvelope className={styles.icon} />
+              <span>Radicación</span>
             </div>
           </Link>
 
           <Link href="/dashboard/document.management" className={styles.navLink}>
-          <div className={styles.navItem}>
-          <FaFolderOpen/> 
-          <span>Gestion documental</span>
-          </div>
+            <div className={styles.navItem}>
+              <FaFolder className={styles.icon} />
+              <span>Gestión Documental</span>
+            </div>
           </Link>
 
           <Link href="/dashboard/pending.activities" className={styles.navLink}>
-          <div className={styles.navItem}>
-            <FaClipboardList/>
-            <span>Actividades Pendientes</span>
+            <div className={styles.navItem}>
+              <FaTasks className={styles.icon} />
+              <span>Actividades Pendientes</span>
             </div>
           </Link>
 
           <Link href="/dashboard/user.management" className={styles.navLink}>
-          <div className={styles.navItem}>
-            <FaUsersBetweenLines/>
-          <span>Gestion de usuarios</span> 
-          </div>
+            <div className={styles.navItem}>
+              <FaUserCog className={styles.icon} />
+              <span>Gestión de Usuarios</span>
+            </div>
           </Link>
 
           <Link href="/dashboard/create.dependencies" className={styles.navLink}>
-         <div className={styles.navItem}>
-          <FaSchoolCircleCheck/>
-         <span>Crear dependencias</span>  
-         </div>
+            <div className={styles.navItem}>
+              <FaBuilding className={styles.icon} />
+              <span>Crear Dependencias</span>
+            </div>
           </Link>
-          
         </nav>
 
         <a href="/login" className={styles.logout}>
-          Cerrar sesión
+          <FaSignOutAlt className={styles.logoutIcon} />
+          <span>Cerrar sesión</span>
         </a>
       </aside>
 
       {/* Main content */}
       <main className={styles.main}>
-        {/* Header con "Bienvenido" + icono + avatar */}
         <Header userName="Jaider" />
-
-        {/* Contenido de la página debajo del header */}
         <div className={styles.pageContent}>{children}</div>
       </main>
     </div>
