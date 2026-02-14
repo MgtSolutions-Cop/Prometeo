@@ -1,37 +1,120 @@
-.container {
-  padding: 40px;
-  background: #f5f6fa;
-  min-height: 100vh;
+/* src/app/dashboard/metrics/metrics.module.css */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-.title {
+/* Header */
+.heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.h1 {
+  margin: 0;
   font-size: 28px;
-  font-weight: 600;
-  margin-bottom: 30px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.92);
 }
 
+.sub {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* Grid */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
 }
 
+/* Cards KPI */
 .card {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  transition: 0.3s;
+  position: relative;
+  border-radius: 18px;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  overflow: hidden;
+}
+
+/* Acento superior */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(229, 57, 53, 0.85),
+    rgba(240, 98, 146, 0.6)
+  );
+  opacity: 0.55;
 }
 
 .card:hover {
-  transform: scale(1.05);
+  transform: translateY(-3px);
+  border-color: rgba(229, 57, 53, 0.25);
+  box-shadow: 0 22px 46px rgba(0, 0, 0, 0.35);
 }
 
-.number {
-  font-size: 32px;
-  font-weight: bold;
-  color: #8b0000;
-  margin-top: 10px;
+/* Textos */
+.label {
+  margin: 0 0 6px 0;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.value {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 800;
+  color: #E53935; /* prometeo red */
+}
+
+.hint {
+  margin: 6px 0 0 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

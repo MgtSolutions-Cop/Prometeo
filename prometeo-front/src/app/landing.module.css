@@ -1,45 +1,257 @@
-/* 🎨 src/app/landing.module.css */
+/* src/app/landing.module.css */
 
-/* === Botón principal de la landing === */
+/* Fondo con glow */
+.wrapper {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 48px 18px;
+
+  background:
+    radial-gradient(900px 520px at 20% 25%, rgba(229, 57, 53, 0.20), transparent 60%),
+    radial-gradient(820px 520px at 82% 70%, rgba(240, 98, 146, 0.10), transparent 60%),
+    linear-gradient(180deg, #0a0a0a 0%, #0b0b0b 100%);
+}
+
+/* Tarjeta glass */
+.card {
+  width: min(1120px, 100%);
+  border-radius: 26px;
+  padding: 28px 28px 22px;
+  overflow: hidden;
+
+  background: rgba(20, 20, 20, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  animation: fadeIn 0.8s ease forwards;
+}
+
+/* Topbar */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.brand {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.nav {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+}
+
+.navLink {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  transition: 0.25s ease;
+}
+.navLink:hover {
+  color: var(--prometeo-pink);
+}
+
+/* Layout */
+.content {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 18px;
+  align-items: stretch;
+  min-height: 480px;
+}
+
+.left {
+  padding: 22px 10px 10px 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.kicker {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: clamp(40px, 4.2vw, 64px);
+  line-height: 0.98;
+  font-weight: 800;
+  margin: 0 0 12px;
+  color: var(--prometeo-white);
+}
+
+.titleAccent {
+  color: var(--prometeo-pink);
+}
+
+.subtitle {
+  max-width: 520px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.62);
+  margin: 0 0 22px;
+}
+
+.ctaRow {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 26px;
+}
+
+/* ✅ Tu botón original (lo mantengo) */
 .button {
   background-color: var(--prometeo-red-dark);
   color: var(--prometeo-white);
   font-weight: 600;
   padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  border-radius: 0.9rem;
   border: none;
   cursor: pointer;
   transition: all var(--transition-base);
   text-decoration: none;
-  display: inline-block;
-  box-shadow: 0 4px 15px rgba(139, 0, 0, 0.3);
-  animation: fadeIn 0.8s ease forwards;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: 0 10px 26px rgba(139, 0, 0, 0.28);
+}
+
+/* Variante primaria más “pro” */
+.buttonPrimary {
+  background: linear-gradient(180deg, rgba(139, 0, 0, 1) 0%, rgba(117, 0, 0, 1) 100%);
 }
 
 .button:hover {
   background-color: var(--prometeo-red);
   transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 6px 20px rgba(229, 57, 53, 0.4);
+  box-shadow: 0 14px 30px rgba(229, 57, 53, 0.26);
 }
 
-/* 💎 Animación de flotación del logo */
-.logo {
-  animation: float 3s ease-in-out infinite;
+/* Botón ghost */
+.buttonGhost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.9rem;
+  font-weight: 600;
+
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.82);
+  transition: 0.25s ease;
+  text-decoration: none;
 }
 
-@keyframes float {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
+.buttonGhost:hover {
+  border-color: rgba(240, 98, 146, 0.35);
+  color: var(--prometeo-pink);
+  transform: translateY(-2px);
 }
 
-/* ✨ Animación global para textos (Next.js requiere :global) */
+/* Barra inferior tipo slider */
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 14px;
+}
+
+.progressNum {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.85);
+}
+.progressNumMuted {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.progressLine {
+  height: 1px;
+  width: 140px;
+  background: linear-gradient(90deg, rgba(240, 98, 146, 0.9), rgba(255, 255, 255, 0.08));
+  border-radius: 99px;
+}
+
+.footer {
+  margin-top: 18px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+/* Right hero */
+.right {
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(120% 90% at 35% 45%, rgba(229, 57, 53, 0.16), transparent 55%);
+}
+
+.heroCircle {
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  background: rgba(229, 57, 53, 0.58);
+  right: 14%;
+  top: 18%;
+  opacity: 0.95;
+}
+
+.heroCircleSmall {
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(229, 57, 53, 0.55);
+  left: 10%;
+  bottom: 8%;
+  opacity: 0.8;
+}
+
+.heroImageWrap {
+  position: relative;
+  width: min(520px, 86%);
+  aspect-ratio: 1 / 1;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+}
+
+/* Efecto “rojo” parecido a la referencia */
+.heroImage {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: saturate(1.15) contrast(1.05) brightness(0.95)
+    drop-shadow(0 22px 30px rgba(0, 0, 0, 0.45));
+  opacity: 0.95;
+}
+
+/* Animaciones */
 :global(h1),
 :global(p),
 :global(footer) {
@@ -57,10 +269,31 @@
   }
 }
 
-/* 📱 Responsive */
+/* Responsive */
+@media (max-width: 900px) {
+  .content {
+    grid-template-columns: 1fr;
+    min-height: unset;
+  }
+
+  .right {
+    min-height: 320px;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .heroCircle {
+    right: 18%;
+    top: 10%;
+  }
+}
+
 @media (max-width: 480px) {
-  .button {
-    padding: 0.6rem 1.2rem;
+  .button,
+  .buttonGhost {
+    padding: 0.65rem 1.1rem;
     font-size: 0.95rem;
   }
 }

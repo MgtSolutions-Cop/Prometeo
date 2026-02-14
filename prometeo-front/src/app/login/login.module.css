@@ -1,157 +1,169 @@
-/* src/app/login/login.module.css
-   Compatibilidad: define alias para (.container / .loginContainer), (.loginBox / .loginCard), (.title / .loginTitle)
-   Usa variables globales definidas en globals.css:
-   --prometeo-black, --prometeo-gray, --prometeo-gray-light, --prometeo-red-dark, --prometeo-red, --prometeo-white, --transition-base, --font-family-base
-*/
-
-/* ----------------------
-   Contenedor principal (aliases)
-   ---------------------- */
-.container,
-.loginContainer {
+/* ===== CONTENEDOR GENERAL ===== */
+.container {
   min-height: 100vh;
   display: flex;
-  align-items: center;
   justify-content: center;
-  background: var(--prometeo-black);
-  color: var(--prometeo-white);
-  font-family: var(--font-family-base);
-  padding: 2rem;
+  align-items: center;
+  background: radial-gradient(
+    circle at top,
+    rgba(229, 57, 53, 0.25),
+    #0a0a0a 60%
+  );
 }
 
-/* ----------------------
-   Tarjeta / card del formulario (aliases)
-   ---------------------- */
-.loginBox,
-.loginCard {
-  background: var(--prometeo-gray);
-  padding: 2.5rem;
-  border-radius: 1rem;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
-  width: 100%;
-  max-width: 420px; /* controla el ancho para que no se desborde */
+/* ===== CARD PRINCIPAL ===== */
+.card {
+  position: relative;
+  width: 900px;
+  height: 420px;
+  display: flex;
+  background: #000;
+  border-radius: 20px;
+  overflow: hidden;
+
+  border: 2px solid rgba(229, 57, 53, 0.5);
+  box-shadow:
+    0 0 25px rgba(229, 57, 53, 0.4),
+    0 0 60px rgba(229, 57, 53, 0.2);
+}
+
+/* ===== PANEL IZQUIERDO (DIAGONAL) ===== */
+.leftPanel {
+  position: relative;
+  width: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--prometeo-red),
+    var(--prometeo-red-dark)
+  );
+  clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+  padding: 60px 40px;
+
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  border: 1px solid rgba(255,255,255,0.04);
-  animation: fadeInUp 0.5s ease both;
+  justify-content: center;
+  color: white;
 }
 
-/* ----------------------
-   Título (aliases)
-   ---------------------- */
-.title,
-.loginTitle {
-  font-size: 1.6rem;
-  font-weight: 700;
-  text-align: center;
-  margin: 0;
-  color: var(--prometeo-white);
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
+.leftPanel h2 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 12px;
 }
 
-/* ----------------------
-   Grupo de inputs (opcional)
-   ---------------------- */
-.inputGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* ----------------------
-   Campos de entrada
-   ---------------------- */
-.inputField {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgba(255,255,255,0.06);
-  background-color: rgba(0,0,0,0.35); /* contraste con la card */
-  color: var(--prometeo-white);
+.leftPanel p {
   font-size: 1rem;
-  outline: none;
-  transition: all var(--transition-base);
-  box-sizing: border-box;
+  opacity: 0.9;
+  line-height: 1.6;
 }
 
-.inputField::placeholder {
-  color: rgba(255,255,255,0.45);
+/* ===== PANEL DERECHO ===== */
+.rightPanel {
+  width: 50%;
+  padding: 60px 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #000;
 }
 
-.inputField:focus {
-  border-color: var(--prometeo-red);
-  box-shadow: 0 0 10px rgba(229,57,53,0.12);
+/* ===== TITULO FORM ===== */
+.formTitle {
+  color: white;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 30px;
 }
 
-/* ----------------------
-   Botón principal (igual que landing)
-   ---------------------- */
-.loginButton,
-/* alias por si usas otro nombre */
-.buttonPrimary {
+/* ===== INPUTS ===== */
+.inputGroup {
+  margin-bottom: 22px;
+}
+
+.inputGroup input {
   width: 100%;
-  padding: 0.9rem 1.4rem;
-  border-radius: 0.5rem;
-  background-color: var(--prometeo-red-dark);
-  color: var(--prometeo-white);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 5px;
+  font-size: 1rem;
+  color: white;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.inputGroup input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.inputGroup input:focus {
+  border-bottom-color: var(--prometeo-red);
+}
+
+/* ===== BOTÓN ===== */
+.loginButton {
+  margin-top: 25px;
+  padding: 12px;
+  border-radius: 30px;
+  border: none;
   font-weight: 600;
   font-size: 1rem;
-  border: none;
   cursor: pointer;
-  transition: all var(--transition-base);
-  box-shadow: 0 4px 15px rgba(139, 0, 0, 0.3);
-  animation: fadeIn 0.6s ease forwards;
+  color: white;
+
+  background: linear-gradient(
+    90deg,
+    var(--prometeo-red),
+    var(--prometeo-red-dark)
+  );
+
+  box-shadow:
+    0 0 15px rgba(229, 57, 53, 0.6),
+    0 0 30px rgba(229, 57, 53, 0.4);
+
+  transition: all 0.3s ease;
 }
 
-.loginButton:hover,
-.buttonPrimary:hover {
-  background-color: var(--prometeo-red);
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 6px 24px rgba(229, 57, 53, 0.38);
+.loginButton:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 25px rgba(229, 57, 53, 0.8),
+    0 0 40px rgba(229, 57, 53, 0.5);
 }
 
 .loginButton:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* ----------------------
-   Texto footer / ayuda (aliases)
-   ---------------------- */
-.footerText,
-.loginLink {
-  text-align: center;
+/* ===== TEXTO FOOTER ===== */
+.footerText {
+  margin-top: 20px;
   font-size: 0.9rem;
-  color: var(--prometeo-gray-light);
-  margin-top: 0.25rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  cursor: pointer;
 }
 
-/* ----------------------
-   Animaciones
-   ---------------------- */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+.footerText:hover {
+  color: var(--prometeo-pink);
 }
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* ----------------------
-   Responsive
-   ---------------------- */
-@media (max-width: 480px) {
-  .loginBox,
-  .loginCard {
-    padding: 1.5rem;
-    gap: 1rem;
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .card {
+    flex-direction: column;
+    width: 95%;
+    height: auto;
   }
 
-  .loginButton {
-    padding: 0.85rem 1rem;
+  .leftPanel {
+    width: 100%;
+    clip-path: none;
+    text-align: center;
+  }
+
+  .rightPanel {
+    width: 100%;
   }
 }

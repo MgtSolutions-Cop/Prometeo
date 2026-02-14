@@ -1,30 +1,81 @@
-// app/page.tsx
+// src/app/page.tsx
 import Link from "next/link";
+import Image from "next/image";
 import styles from "./landing.module.css";
 
 export default function LandingPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen text-center px-6">
-      <img
-        src="/logo.png"
-        alt="Prometeo Logo"
-        className="w-32 h-32 mb-6 object-contain"
-      />
+    <main className={styles.wrapper}>
+      <section className={styles.card}>
+        {/* Topbar */}
+        <header className={styles.topbar}>
+          <div className={styles.brand}>
+            <Image src="/logo.png" alt="Prometeo" width={34} height={34} />
+          </div>
 
-      <h1 className="text-4xl font-bold text-prometeo-white mb-2">PROMETEO</h1>
-      <p className="text-prometeo-pink text-lg mb-8">
-        Simplifica · Organiza · Optimiza
-      </p>
+          <nav className={styles.nav}>
+            <a className={styles.navLink} href="#about">ABOUT</a>
+            <a className={styles.navLink} href="#features">GALLERY</a>
+            <a className={styles.navLink} href="#contact">CONTACTS</a>
+          </nav>
+        </header>
 
-      <div className="flex gap-4">
-        <Link href="/login" className={styles.button}>
-          Iniciar sesión
-        </Link>
-      </div>
+        {/* Content */}
+        <div className={styles.content}>
+          {/* Left */}
+          <div className={styles.left}>
+            <p className={styles.kicker}>NUESTRA VISIÓN</p>
 
-      <footer className="mt-12 text-sm text-gray-400">
-        © 2025 Prometeo. Todos los derechos reservados pa Miguel y Jaider.
-      </footer>
-    </div>
+            <h1 className={styles.title}>
+              PROMETEO <span className={styles.titleAccent}>FILES</span>
+            </h1>
+
+            <p className={styles.subtitle}>
+              Simplifica · Organiza · Optimiza. Gestiona tus archivos en un solo lugar
+              con una experiencia moderna, rápida y segura.
+            </p>
+
+            <div className={styles.ctaRow}>
+              {/* Reutilizamos .button pero con look más pro */}
+              <Link href="/login" className={`${styles.button} ${styles.buttonPrimary}`}>
+                Iniciar sesión
+              </Link>
+
+              <a href="#about" className={styles.buttonGhost}>
+                Ver más
+              </a>
+            </div>
+
+            <div className={styles.progress}>
+              <span className={styles.progressNum}>01</span>
+              <span className={styles.progressLine} />
+              <span className={styles.progressNumMuted}>03</span>
+            </div>
+
+            <footer className={styles.footer}>
+              © 2025 Prometeo. Todos los derechos reservados pa Miguel y Jaider.
+            </footer>
+          </div>
+
+          {/* Right */}
+          <div className={styles.right}>
+            <div className={styles.heroCircle} />
+            <div className={styles.heroCircleSmall} />
+
+            {/* logo prometeo inicio*/}
+            <div className={styles.heroImageWrap}>
+              <Image
+                src="/logo.png"
+                alt="Prometeo Hero"
+                width={520}
+                height={520}
+                className={styles.heroImage}
+                priority
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
