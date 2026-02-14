@@ -11,6 +11,7 @@ import {
   FaUserCog,      // reemplazo de FaUserGear
   FaBuilding,
   FaSignOutAlt,
+  FaHome,          // nuevo ícono para el dashboard principal
 } from "react-icons/fa";
 
 export default function DashboardLayout({
@@ -28,6 +29,14 @@ export default function DashboardLayout({
         </div>
 
         <nav className={styles.nav}>
+          <Link href="/dashboard" className={styles.navLink}>
+            <div className={styles.navItem}>
+              <FaHome className={styles.icon} />
+              <span>Home</span>
+            </div>
+          </Link>
+
+
           <Link href="/dashboard/metrics" className={styles.navLink}>
             <div className={styles.navItem}>
               <FaChartBar className={styles.icon} />
@@ -71,10 +80,11 @@ export default function DashboardLayout({
           </Link>
         </nav>
 
-        <a href="/login" className={styles.logout}>
+        <Link href="/login" className={styles.logout}>
           <FaSignOutAlt className={styles.logoutIcon} />
           <span>Cerrar sesión</span>
-        </a>
+        </Link>
+
       </aside>
 
       {/* Main content */}

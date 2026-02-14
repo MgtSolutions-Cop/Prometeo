@@ -26,23 +26,40 @@ export default function Login() {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.loginBox}>
-        <h2 className={styles.title}>Iniciar Sesión</h2>
-        <input
-          className={styles.inputField}
-          type="text"
-          placeholder="Usuario"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          className={styles.inputField}
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+  <div className={styles.container}>
+    <div className={styles.card}>
+      {/* Panel izquierdo */}
+      <div className={styles.leftPanel}>
+        <h2>BIENVENIDO!</h2>
+        <p>
+          Gestiona y protege tus archivos
+          <br />
+          desde un solo lugar con prometeo.
+        </p>
+      </div>
+
+      {/* Panel derecho */}
+      <div className={styles.rightPanel}>
+        <h2 className={styles.formTitle}>Sign In</h2>
+
+        <div className={styles.inputGroup}>
+          <input
+            type="text"
+            placeholder="Usuario"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+
+        <div className={styles.inputGroup}>
+          <input
+            type="password"
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
         <button
           className={styles.loginButton}
           onClick={handleLogin}
@@ -50,8 +67,13 @@ export default function Login() {
         >
           {loading ? "Ingresando..." : "Ingresar"}
         </button>
-        <p className={styles.footerText}>¿Olvidaste tu contraseña?</p>
+
+        <p className={styles.footerText}>
+          ¿Olvidaste tu contraseña?
+        </p>
       </div>
     </div>
-  );
+  </div>
+);
+
 }
