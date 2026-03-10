@@ -4,6 +4,11 @@ import dotenv from "dotenv";
 import cors from "cors";
 import  router from "./src/routes.js";
 import { InitDb } from "./src/config/db.js";
+//import para poder acceder a la imagen del radicado
+import path from "path";
+import { fileURLToPath } from "url";
+
+
 dotenv.config();
 await InitDb();
 const app=express();
@@ -14,8 +19,13 @@ origin:"http://localhost:3000",
 credentials:true,
 }));
 
+//creamos las constantes para poder obtener las imagen del radicado
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+//servimos la carpeta 
+app.use("/stickers", express.static("public/stickers"));
 app.use("/api",router);
-app.get("/",(res,req)=>{
+app.get("/",(req, res)=>{
     res.send("Prometeo api Run");
 });
 const PORT= process.env.PORT || 4000;

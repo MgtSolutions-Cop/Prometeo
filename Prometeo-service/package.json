@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-      "dev": "nodemon server.js"
+    "dev": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
@@ -13,12 +13,18 @@
   "description": "",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "bwip-js": "^4.7.0",
+    "canvas": "^3.2.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "jimp": "^0.22.10",
+    "jimp-compact": "^0.16.1-2",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.16.3"
+    "nodemailer": "^7.0.10",
+    "pg": "^8.16.3",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
