@@ -1,106 +1,150 @@
 /* src/app/dashboard/Dashboard.module.css */
+
 .container {
-  background-color: #1A1A1A; /* prometeoBlack */
-  color: #FFFFFF; /* prometeoWhite */
+  background-color: #0a0a0a;
+  color: #ffffff;
   min-height: 100vh;
   display: flex;
+  position: relative;
 }
 
-/* ==== SIDEBAR ==== */
+/* ── OVERLAY ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  z-index: 40;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── SIDEBAR (drawer flotante, sin ocupar espacio) ── */
 .sidebar {
-  width: 16rem; /* 64 Tailwind equiv */
-  background-color: #8B0000; /* prometeoRedDark */
-  padding: 1.5rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 15rem;
+  background-color: #0f0f0f;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 1.5rem 1rem 1.25rem;
   display: flex;
   flex-direction: column;
-  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.4);
-  transition: width 0.3s ease;
+  z-index: 50;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5),
+              1px 0 0 rgba(229, 57, 53, 0.1);
+
+  /* Cerrado: oculto */
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity   0.28s ease;
+}
+.sidebarOpen {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: all;
 }
 
-.sidebar:hover {
-  width: 17rem;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 2.5rem;
-}
-
-/* ==== NAVEGACIÓN ==== */
+/* ── NAV ── */
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 2px;
   flex: 1;
 }
 
 .navLink {
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  color: #ffffff; /*color iconos y texto inicial*/
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.45);
   text-decoration: none;
-  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
 }
-
 .navItem {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  transition: transform 0.3s ease;
+  gap: 0.7rem;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
-
-/* Tamaño y animación de íconos */
 .icon {
-  font-size: 1.6rem; /* aumentado */
-  transition: transform 0.3s ease, color 0.3s ease;
+  font-size: 1rem;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.35);
+  transition: color 0.2s, transform 0.25s ease;
 }
-
-/* Hover con animación */
 .navLink:hover {
-  background-color: #750000; /* prometeoRed */
-  transform: translateX(10px);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
 }
-
 .navLink:hover .icon {
-  transform: scale(1.4) rotate(8deg);
-  color: white; /* color icono animacion */
+  color: #E53935;
+  transform: scale(1.15);
+}
+.navLinkActive {
+  color: #ffffff;
+  background: rgba(229, 57, 53, 0.12);
+  border-color: rgba(229, 57, 53, 0.25);
+}
+.navLinkActive .icon {
+  color: #E53935;
 }
 
-/* ==== LOGOUT ==== */
+/* ── DIVIDER ── */
+.navDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 8px 0;
+}
+
+/* ── LOGOUT ── */
 .logout {
-  margin-top: auto;
-  text-align: center;
-  font-weight: 600;
-  background-color: #F06292; /* prometeoPink */
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  color: #000;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.4);
   text-decoration: none;
-  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.2s;
 }
-
 .logout:hover {
-  background-color: #E53935;
-  color: #fff;
-  transform: scale(1.05);
+  color: #E53935;
+  border-color: rgba(229, 57, 53, 0.3);
+  background: rgba(229, 57, 53, 0.07);
+}
+.logoutIcon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: transform 0.25s ease, color 0.2s;
+}
+.logout:hover .logoutIcon {
+  transform: translateX(-3px);
+  color: #E53935;
 }
 
-/* Animación especial del ícono de logout */
-.logout:hover .icon {
-  transform: scale(1.5) rotate(-10deg);
-  color: #fff;
-}
-
-/* ==== CONTENIDO PRINCIPAL ==== */
+/* ── MAIN (100% ancho, el sidebar no empuja nada) ── */
 .main {
   flex: 1;
-  padding: 2rem;
-  background-color: #2E2E2E; /* prometeoGray */
+  width: 100%;
+  padding: 1.25rem 2rem 2rem;
+  background-color: #111111;
   overflow-y: auto;
+  min-height: 100vh;
 }
+
 .pageContent {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
+  padding-top: 1rem;
 }

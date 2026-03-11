@@ -4,7 +4,6 @@ import styles from "./pending.activities.module.css";
 export default function PendingActivitiesPage() {
   return (
     <div className={styles.wrap}>
-      {/* Header interno */}
       <div className={styles.heading}>
         <div>
           <h1 className={styles.h1}>Actividades pendientes</h1>
@@ -12,8 +11,13 @@ export default function PendingActivitiesPage() {
             Revisión, asignación y control de tareas por parte del administrador
           </p>
         </div>
-
-        <span className={styles.badge}>✅ Gestión de tareas</span>
+        <span className={styles.badge}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 11 12 14 22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          Gestión de tareas
+        </span>
       </div>
 
       <div className={styles.card}>
@@ -22,7 +26,6 @@ export default function PendingActivitiesPage() {
           de los usuarios. El administrador podrá marcarlas como completadas,
           asignarlas o eliminarlas.
         </p>
-
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead className={styles.thead}>
@@ -34,7 +37,6 @@ export default function PendingActivitiesPage() {
                 <th className={styles.thRight}>Acciones</th>
               </tr>
             </thead>
-
             <tbody>
               <tr className={styles.tr}>
                 <td className={styles.td}>1</td>
@@ -53,8 +55,6 @@ export default function PendingActivitiesPage() {
                   <button className={styles.btnDelete}>Eliminar</button>
                 </td>
               </tr>
-
-              {/* Ejemplo de otra fila */}
               <tr className={styles.tr}>
                 <td className={styles.td}>2</td>
                 <td className={styles.td}>
@@ -75,7 +75,6 @@ export default function PendingActivitiesPage() {
             </tbody>
           </table>
         </div>
-
         <p className={styles.hint}>
           Tip: después añadimos filtros por estado, búsqueda y paginación.
         </p>
