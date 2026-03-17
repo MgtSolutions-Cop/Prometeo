@@ -8,5 +8,5 @@ const router =express.Router();
 router.use("/auth", authRoutes);
 router.use("/users",userRoutes);
 router.use("/roles",rolesRouter)
-router.use("/documents", radicationRoutes);
+router.use("/radication", radicationRoutes);
 export default router; 

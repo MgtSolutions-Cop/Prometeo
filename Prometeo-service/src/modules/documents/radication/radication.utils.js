@@ -7,52 +7,40 @@ import { pool } from "../../../config/db.js";
 // ======================================================
 // 1) GENERAR NÚMERO SECUENCIAL
 // ======================================================
-export async function generateRadicationNumber(radicationType) {
+export async function generateRadicationNumber(client, radicationType, entityId) {
   const now = new Date();
   const year = now.getFullYear();
 
-  const client = await pool.connect();
-  try {
-    await client.query("BEGIN");
+  // Bloqueamos la fila específica de esta entidad para que dos peticiones 
+  // simultáneas no obtengan el mismo número.
+  const sel = await client.query(
+    `SELECT last_seq 
+     FROM radication_counters 
+     WHERE year = $1 AND radication_type = $2 AND entity_id = $3
+     FOR UPDATE`,
+    [year, radicationType, entityId]
+  );
 
-    const sel = await client.query(
-      `SELECT last_seq 
-       FROM radication_counters 
-       WHERE year = $1 AND radication_type = $2 
-       FOR UPDATE`,
-      [year, radicationType]
+  let seq = 1;
+  if (sel.rows.length === 0) {
+    await client.query(
+      `INSERT INTO radication_counters (year, radication_type, entity_id, last_seq)
+       VALUES ($1, $2, $3, $4)`,
+      [year, radicationType, entityId, seq]
     );
-
-    let seq = 1;
-    if (sel.rows.length === 0) {
-      await client.query(
-        `INSERT INTO radication_counters (year, radication_type, last_seq)
-         VALUES ($1, $2, $3)`,
-        [year, radicationType, seq]
-      );
-    } else {
-      seq = sel.rows[0].last_seq + 1;
-      await client.query(
-        `UPDATE radication_counters
-         SET last_seq = $1
-         WHERE year = $2 AND radication_type = $3`,
-        [seq, year, radicationType]
-      );
-    }
-
-    await client.query("COMMIT");
-
-    const seqStr = seq.toString().padStart(6, "0");
-    return `${year}-${seqStr}-${radicationType}`;
-
-  } catch (err) {
-    await client.query("ROLLBACK");
-    throw err;
-  } finally {
-    client.release();
+  } else {
+    seq = sel.rows[0].last_seq + 1;
+    await client.query(
+      `UPDATE radication_counters
+       SET last_seq = $1
+       WHERE year = $2 AND radication_type = $3 AND entity_id = $4`,
+      [seq, year, radicationType, entityId]
+    );
   }
-}
 
+  const seqStr = seq.toString().padStart(6, "0");
+  return `${year}-${seqStr}-${radicationType}`;
+}
 // ======================================================
 // 2) GENERAR BUFFER DEL CÓDIGO DE BARRAS
 // ======================================================
@@ -129,7 +117,11 @@ export async function createStickerPNG({ radicationNumber, date, tipo, origen, s
     .toBuffer();
 
   // --- Guardar archivo ---
-  const stickersDir = path.resolve("public", "stickers");
+ // En radication.utils.js (dentro de createStickerPNG)
+
+  // --- Guardar archivo de forma PRIVADA ---
+  // Cambiamos 'public' por 'storage' (una carpeta que no es accesible directamente)
+  const stickersDir = path.resolve("storage", "stickers");
   await fs.mkdir(stickersDir, { recursive: true });
 
   const filename = `${radicationNumber}.png`;
@@ -140,6 +132,7 @@ export async function createStickerPNG({ radicationNumber, date, tipo, origen, s
   return {
     filename,
     filepath,
-    url: `/stickers/${filename}`,
+    // Esta URL ahora apuntará a nuestro nuevo endpoint protegido
+    url: `/api/radication/sticker/${filename}`, 
   };
 }

@@ -1,17 +1,17 @@
-// src/modules/documents/radication/radication.routes.js
 import { Router } from "express";
-import {
-  createEntryRadication
-} from "./radication.controller.js";
+import { createEntryRadication,getInboundListController, getPrivateStickerController } from "./radication.controller.js";
 import { authMiddleware } from "../../../middlewares/authMiddleware.js";
+import { requirePermission } from "../../../middlewares/permissionMiddleware.js";
 
 const router = Router();
 
-// Protegemos con authenticate (token en cookie)
 router.use(authMiddleware);
 
-// Endpoint: crear radicado de ENTRADA
-router.post("/entry", createEntryRadication);
+// Endpoint protegido para que solo radicadores puedan ejecutarlo
+router.post("/entry", requirePermission('can_radicate_documents'), createEntryRadication);
+// Listar bandeja de entrada
+router.get("/inbound", getInboundListController);
 
-// (En el futuro se agregarán /output y /memo con la misma lógica)
+// Servir sticker protegido (Cualquier usuario logueado puede verlo)
+router.get("/sticker/:filename", getPrivateStickerController);
 export default router;

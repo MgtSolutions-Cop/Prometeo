@@ -1,25 +1,132 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import styles from "./user-management.module.css";
+import { FaBan, FaCheckCircle, FaPenAlt, FaEye, FaEyeSlash, FaRandom } from "react-icons/fa";
+import { getUsers, getRoles, createUser, updateUser, toggleUserState } from "../../services/api"; 
 
 export default function UserManagement() {
-  const [users] = useState([
-    { id: 1, name: "Carlos Pérez",  email: "carlos@empresa.com", role: "Entity Administrator" },
-    { id: 2, name: "Laura Gómez",   email: "laura@empresa.com",  role: "Document Manager" },
-  ]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [roles, setRoles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<number | null>(null);
+  const [formData, setFormData] = useState({
+    full_name: "",
+    email: "",
+    password: "", 
+    role_id: "",
+    dependency_id: 1 
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [usersData, rolesData] = await Promise.all([getUsers(), getRoles()]);
+      setUsers(usersData);
+      setRoles(rolesData);
+    } catch (error) {
+      console.error("Error al cargar datos:", error);
+      alert("Error al cargar los datos del servidor");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return users;
     return users.filter((u) =>
-      [u.name, u.email, u.role].some((v) => v.toLowerCase().includes(q))
+      [u.full_name, u.email, getRoleName(u.role_id)].some(
+        (v) => v && v.toLowerCase().includes(q)
+      )
     );
-  }, [users, query]);
+  }, [users, query, roles]);
 
-  const handleAddUser    = () => console.log("Abrir modal para crear usuario");
-  const handleEditUser   = (id: number) => console.log("Editar usuario", id);
-  const handleDeleteUser = (id: number) => console.log("Eliminar usuario", id);
+  function getRoleName(roleId: number) {
+    const role = roles.find((r) => r.role_id === roleId);
+    return role ? role.name : "Desconocido";
+  }
+
+  const handleOpenModal = (user?: any) => {
+    if (user) {
+      setEditingUserId(user.user_id);
+      setFormData({
+        full_name: user.full_name,
+        email: user.email,
+        password: "", // Se deja vacío para que decida si quiere cambiarla
+        role_id: user.role_id,
+        dependency_id: user.dependency_id || 1,
+      });
+    } else {
+      setEditingUserId(null);
+      setFormData({ full_name: "", email: "", password: "", role_id: "", dependency_id: 1 });
+    }
+    setShowPassword(false);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingUserId(null);
+  };
+
+ const handleSaveUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingUserId) {
+        // Creamos un objeto limpio solo con los datos básicos
+        const payload: any = {
+          full_name: formData.full_name,
+          email: formData.email,
+          role_id: formData.role_id,
+          dependency_id: formData.dependency_id
+        };
+        
+        // Solo si el usuario escribió una contraseña nueva, la añadimos al payload
+        if (formData.password.trim() !== "") {
+          payload.password = formData.password;
+        }
+
+        await updateUser(editingUserId, payload);
+      } else {
+        // Crear
+        if (!formData.password) return alert("La contraseña es obligatoria para nuevos usuarios");
+        await createUser(formData);
+      }
+      await fetchData(); 
+      handleCloseModal();
+    } catch (error: any) {
+      alert(error.message || "Error al guardar el usuario");
+    }
+  };
+
+  const handleToggleState = async (id: number) => {
+    if (!confirm("¿Estás seguro de cambiar el estado de este usuario?")) return;
+    try {
+      await toggleUserState(id);
+      await fetchData(); 
+    } catch (error: any) {
+      alert("Error al cambiar el estado: " + error.message);
+    }
+  };
+
+  const handleGeneratePassword = () => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^*()_+";
+    let newPassword = "";
+    for (let i = 0; i < 12; i++) {
+      newPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setFormData({ ...formData, password: newPassword });
+    setShowPassword(true);
+  };
 
   return (
     <div className={styles.wrap}>
@@ -28,14 +135,6 @@ export default function UserManagement() {
           <h1 className={styles.h1}>Gestión de usuarios</h1>
           <p className={styles.sub}>Crea, edita y administra roles de usuarios</p>
         </div>
-        <span className={styles.badge}>
-          {/* User icon */}
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-          Admin
-        </span>
       </div>
 
       <div className={styles.card}>
@@ -52,74 +151,153 @@ export default function UserManagement() {
               {filtered.length}/{users.length}
             </span>
           </div>
-          <button className={styles.addButton} onClick={handleAddUser}>
+          <button className={styles.addButton} onClick={() => handleOpenModal()}>
             + Nuevo usuario
           </button>
         </div>
 
         <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead className={styles.thead}>
-              <tr>
-                <th className={styles.th}>#</th>
-                <th className={styles.th}>Nombre</th>
-                <th className={styles.th}>Email</th>
-                <th className={styles.th}>Rol</th>
-                <th className={styles.thRight}>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((u) => (
-                <tr key={u.id} className={styles.tr}>
-                  <td className={styles.td}>{u.id}</td>
-                  <td className={styles.td}>
-                    <div className={styles.nameCell}>
-                      <span className={styles.dot} />
-                      {u.name}
-                    </div>
-                  </td>
-                  <td className={styles.td}>
-                    <span className={styles.mono}>{u.email}</span>
-                  </td>
-                  <td className={styles.td}>
-                    <span className={styles.roleBadge}>{u.role}</span>
-                  </td>
-                  <td className={`${styles.td} ${styles.tdRight}`}>
-                    {/* Editar */}
-                    <button className={styles.iconBtn} onClick={() => handleEditUser(u.id)} aria-label="Editar">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                      </svg>
-                    </button>
-                    {/* Eliminar */}
-                    <button className={`${styles.iconBtn} ${styles.danger}`} onClick={() => handleDeleteUser(u.id)} aria-label="Eliminar">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                        <path d="M10 11v6"/>
-                        <path d="M14 11v6"/>
-                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                      </svg>
-                    </button>
-                  </td>
+          {loading ? (
+            <p className={styles.empty}>Cargando datos...</p>
+          ) : (
+            <table className={styles.table}>
+              <thead className={styles.thead}>
+                <tr>
+                  <th className={styles.th}>Nombre</th>
+                  <th className={styles.th}>Email</th>
+                  <th className={styles.th}>Rol</th>
+                  <th className={styles.th}>Estado</th>
+                  <th className={styles.thRight}>Acciones</th>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr className={styles.tr}>
-                  <td className={styles.empty} colSpan={5}>
-                    No hay resultados para "{query}".
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filtered.map((u) => (
+                  <tr key={u.user_id} className={styles.tr} style={{ opacity: u.is_active ? 1 : 0.6 }}>
+                    <td className={styles.td}>
+                      <div className={styles.nameCell}>
+                        <span className={styles.dot} style={{ backgroundColor: u.is_active ? '#b51e2a' : '#555' }} />
+                        {u.full_name}
+                      </div>
+                    </td>
+                    <td className={styles.td}>
+                      <span className={styles.mono}>{u.email}</span>
+                    </td>
+                    <td className={styles.td}>
+                      <span className={styles.roleBadge}>{getRoleName(u.role_id)}</span>
+                    </td>
+                    <td className={styles.td}>
+                      {u.is_active ? 'Activo' : 'Inactivo'}
+                    </td>
+                    <td className={`${styles.td} ${styles.tdRight}`}>
+                      
+                      {/* Botón Editar original */}
+                      <button className={styles.iconBtn} onClick={() => handleOpenModal(u)} title="Editar">
+                        <FaPenAlt />
+                      </button>
+                      
+                      {/* Botones Activar/Inactivar con tus clases originales */}
+                      <button 
+                        className={styles.iconBtn} 
+                        onClick={() => handleToggleState(u.user_id)} 
+                        title={u.is_active ? "Inactivar" : "Activar"}
+                      >
+                        {u.is_active ? <FaBan className={styles.inc} /> : <FaCheckCircle className={styles.chek} />}
+                      </button>
 
-        <p className={styles.hint}>
-          Tip: luego agregamos modal "Crear/Editar usuario" y confirmación de borrado.
-        </p>
+                    </td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr className={styles.tr}>
+                    <td className={styles.empty} colSpan={5}>
+                      No hay resultados para "{query}".
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
+
+      {isModalOpen && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <h2>{editingUserId ? "Editar Usuario" : "Nuevo Usuario"}</h2>
+            
+            <form onSubmit={handleSaveUser}>
+              <div className={styles.formGroup}>
+                <label>Nombre Completo</label>
+                <input 
+                  required 
+                  type="text" 
+                  value={formData.full_name} 
+                  onChange={e => setFormData({...formData, full_name: e.target.value})} 
+                />
+              </div>
+              
+              <div className={styles.formGroup}>
+                <label>Email</label>
+                <input 
+                  required 
+                  type="email" 
+                  value={formData.email} 
+                  onChange={e => setFormData({...formData, email: e.target.value})} 
+                />
+              </div>
+
+              {/* Ahora el campo de contraseña siempre se muestra */}
+              <div className={styles.formGroup}>
+                <label>Contraseña {editingUserId && <span style={{fontSize: '0.75rem', color: '#666'}}>(Opcional)</span>}</label>
+                <div className={styles.passwordWrapper}>
+                  <input 
+                    required={!editingUserId} // Solo es obligatoria al crear
+                    type={showPassword ? "text" : "password"} 
+                    value={formData.password} 
+                    placeholder={editingUserId ? "Dejar en blanco para no cambiar" : ""}
+                    onChange={e => setFormData({...formData, password: e.target.value})} 
+                  />
+                  <button 
+                    type="button" 
+                    className={styles.actionBtn} 
+                    onClick={() => setShowPassword(!showPassword)}
+                    title={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                  <button 
+                    type="button" 
+                    className={styles.actionBtn} 
+                    onClick={handleGeneratePassword}
+                    title="Generar contraseña segura"
+                  >
+                    <FaRandom />
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Rol</label>
+                <select 
+                  required 
+                  value={formData.role_id} 
+                  onChange={e => setFormData({...formData, role_id: e.target.value})}
+                >
+                  <option value="">Seleccione un rol...</option>
+                  {roles.map(role => (
+                    <option key={role.role_id} value={role.role_id}>{role.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.modalActions}>
+                <button type="button" onClick={handleCloseModal} className={styles.cancelBtn}>Cancelar</button>
+                <button type="submit" className={styles.saveBtn}>Guardar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

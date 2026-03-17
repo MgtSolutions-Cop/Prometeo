@@ -1,7 +1,8 @@
-// src/modules/documents/radication/radication.controller.js
 import { validateEntryPayload } from "./radication.validations.js";
-import { createEntryRadication } from "./radication.service.js";
-import { sendEntryNotification } from "./radication.notifications.js"; // veremos abajo (or inline)
+// Traemos los servicios desde su archivo correcto y le ponemos un alias al de crear
+import { createEntryRadication as createEntryService, getInboundRadications } from "./radication.service.js";import path from "path";
+import fs from "fs";
+
 
 export async function createEntryRadicationController(req, res) {
   try {
@@ -23,10 +24,12 @@ export async function createEntryRadicationController(req, res) {
       // lazy import to avoid circular deps
       const { sendEntryNotification } = await import("./radication.notifications.js");
       // build minimal email payload
-      const emailPayload = {
+    const emailPayload = {
         to: payload.correo || null,
         subject: `Nuevo radicado de ENTRADA: ${result.radication.radication_number}`,
-        text: `Tiene una comunicación de ENTRADA en Prometeo.\nRadicado: ${result.radication.radication_number}\nAsunto: ${payload.asunto}`
+        radicationNumber: result.radication.radication_number, // ¡La plantilla necesita esto!
+        asunto: payload.asunto,                                // ¡Y esto!
+        remitente: payload.remitente || payload.entidad_origen || "N/A" // ¡Y esto!
       };
       // don't block response; run but catch errors
       sendEntryNotification(emailPayload).catch(e => console.error("Email error:", e));
@@ -46,7 +49,37 @@ export async function createEntryRadicationController(req, res) {
     console.error("createEntryRadicationController error:", err);
     return res.status(500).json({ message: "Server error", detail: err.message });
   }
+};
+// Controlador para listar la bandeja de entrada
+export async function getInboundListController(req, res) {
+  try {
+    const list = await getInboundRadications(req.user.entity_id);
+    return res.json(list);
+  } catch (err) {
+    console.error("Error fetching inbound radications:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
 }
 
+// Controlador para servir el sticker de forma privada
+export async function getPrivateStickerController(req, res) {
+  try {
+    const { filename } = req.params;
+    // Construimos la ruta absoluta hacia la carpeta segura
+    const filePath = path.resolve("storage", "stickers", filename);
+    
+    // Verificamos que el archivo exista
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "Sticker no encontrado" });
+    }
+    
+    // Si existe y pasó por el middleware de autenticación, se lo enviamos
+    return res.sendFile(filePath);
+  } catch (err) {
+    console.error("Error serving sticker:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+}
 // Export with the name used in routes
 export { createEntryRadicationController as createEntryRadication };
+

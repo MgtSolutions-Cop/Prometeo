@@ -1,271 +1,374 @@
-/* src/app/dashboard/user.management/user-management.module.css */
-
+/* --- CONTENEDOR PRINCIPAL (Tema Oscuro) --- */
 .wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: system-ui, -apple-system, sans-serif;
+
+  min-height: 100vh;
+  color: #bbb; /* Texto gris claro general */
 }
 
-/* Header */
+/* --- ENCABEZADO --- */
 .heading {
   display: flex;
-  align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
-  margin-top: 6px;
+  align-items: flex-start;
+  margin-bottom: 2rem;
 }
 
 .h1 {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.92);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #fff; /* Título en blanco */
+  margin: 0 0 0.25rem 0;
 }
 
 .sub {
+  font-size: 0.875rem;
+  color: #888; /* Subtexto más oscuro */
   margin: 0;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.55);
 }
 
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.72);
-}
-
-/* Card */
+/* --- TARJETA Y HERRAMIENTAS --- */
 .card {
-  border-radius: 18px;
-  padding: 22px;
-
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  background: #111; /* Tarjeta gris muy oscuro */
+  border: 1px solid #222; /* Borde sutil */
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
 }
 
-/* Toolbar */
 .toolbar {
+  padding: 1rem 1.5rem;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
+  align-items: center;
+  border-bottom: 1px solid #222;
+  gap: 1rem;
 }
 
 .searchWrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  position: relative;
   flex: 1;
-  min-width: 260px;
+  max-width: 400px;
 }
 
 .search {
   width: 100%;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.35);
-  color: #fff;
+  padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+  border: 1px solid #333; /* Borde oscuro */
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
   outline: none;
-  transition: all var(--transition-base);
-}
-
-.search::placeholder {
-  color: rgba(255, 255, 255, 0.35);
+  background-color: #111; /* Fondo oscuro del input */
+  color: #bbb;
 }
 
 .search:focus {
-  border-color: rgba(229, 57, 53, 0.55);
-  box-shadow: 0 0 0 6px rgba(229, 57, 53, 0.12);
+  border-color: #b51e2a; /* Rojo Prometeo al enfocar */
+  box-shadow: 0 0 0 1px #b51e2a;
 }
 
 .searchHint {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-  padding: 6px 10px;
-  border-radius: 999px;
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: #666;
 }
 
-/* Button primary */
 .addButton {
-  padding: 12px 16px;
-  border-radius: 14px;
+  padding: 0.5rem 1rem;
+  background-color: #b51e2a; /* Rojo Prometeo para botones primarios */
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
   border: none;
+  border-radius: 0.375rem;
   cursor: pointer;
-
-  background: linear-gradient(180deg, rgba(139, 0, 0, 1) 0%, rgba(117, 0, 0, 1) 100%);
-  color: #fff;
-  font-weight: 800;
-  font-size: 13px;
-
-  box-shadow: 0 14px 30px rgba(229, 57, 53, 0.22);
-  transition: transform 0.25s ease, filter 0.25s ease;
+  transition: background-color 0.2s;
 }
 
 .addButton:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.06);
+  background-color: #9c1923;
 }
 
-/* Table */
+/* --- TABLA (Tema Oscuro) --- */
 .tableWrap {
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-x: auto;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  background: rgba(0, 0, 0, 0.18);
+  text-align: left;
 }
 
 .thead {
-  background: rgba(139, 0, 0, 0.55);
+  background-color: #1a1a1a; /* Cabecera un poco más clara */
 }
 
-.th,
-.thRight {
-  text-align: left;
-  padding: 12px 14px;
-  font-size: 12px;
-  letter-spacing: 0.08em;
+.th {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #999; /* Texto de cabecera gris */
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.92);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #222;
 }
 
 .thRight {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #222;
   text-align: right;
 }
 
 .tr {
-  transition: background 0.2s ease;
+  border-bottom: 1px solid #222;
+  transition: background-color 0.2s;
+}
+
+.tr:last-child {
+  border-bottom: none;
 }
 
 .tr:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background-color: #161616; /* Efecto hover oscuro */
 }
 
-.td,
-.tdRight {
-  padding: 12px 14px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.72);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+.td {
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  color: #bbb;
 }
 
 .tdRight {
   text-align: right;
-  white-space: nowrap;
 }
 
 .nameCell {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  font-weight: 800;
-  color: rgba(255, 255, 255, 0.88);
+  gap: 0.5rem;
+  font-weight: 500;
+  color: #fff; /* Nombres en blanco */
 }
 
 .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(240, 98, 146, 0.9);
-  box-shadow: 0 0 14px rgba(240, 98, 146, 0.25);
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  display: inline-block;
+  background-color: #b51e2a; /* Punto rojo Prometeo para activos */
 }
 
 .mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.68);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #999;
 }
 
-/* Role badge */
 .roleBadge {
   display: inline-flex;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 800;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.82);
+  padding: 0.125rem 0.625rem;
+  background-color: #2a2a2a; /* Badge gris oscuro */
+  color: #b51e2a; /* Texto rojo Prometeo */
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  border: 1px solid #333;
 }
 
-/* Action icon buttons */
 .iconBtn {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.9);
+  background: none;
+  border: none;
+  color: #b51e2a; /* Iconos de acción en rojo Prometeo */
   cursor: pointer;
-
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  transition: transform 0.2s ease, filter 0.2s ease, border-color 0.2s ease;
-  margin-left: 8px;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  margin-left: 0.5rem;
+  transition: color 0.2s, background-color 0.2s;
+  opacity: 0.8;
 }
 
 .iconBtn:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.08);
-  border-color: rgba(240, 98, 146, 0.25);
+  color: #9c1923;
+  background-color: #1a1a1a;
+  opacity: 1;
 }
 
-.danger {
-  background: rgba(229, 57, 53, 0.14);
-  border-color: rgba(229, 57, 53, 0.22);
-}
-
-.danger:hover {
-  border-color: rgba(229, 57, 53, 0.35);
-}
-
-/* Empty row */
 .empty {
-  padding: 18px 14px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.55);
+  padding: 2rem;
+  text-align: center;
+  color: #666;
+  font-size: 0.875rem;
 }
 
-/* Hint */
-.hint {
-  margin: 14px 0 0 0;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.42);
+/* --- ESTILOS DEL MODAL (Tema Oscuro) --- */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7); /* Overlay más oscuro */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
-/* Responsive */
-@media (max-width: 900px) {
-  .heading {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .tdRight,
-  .thRight {
-    text-align: left;
-  }
-  .iconBtn {
-    margin-left: 6px;
-  }
+.modalContent {
+  background-color: #1c1c1c; /* Modal gris oscuro warm */
+  padding: 2rem;
+  border-radius: 0.75rem;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+  border: 1px solid #333;
+}
+
+.modalContent h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  color: #fff; /* Título modal blanco */
+}
+
+.formGroup {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.formGroup label {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #aaa;
+}
+
+.formGroup input,
+.formGroup select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #333;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s;
+  background-color: #1c1c1c; /* Fondo oscuro warm de inputs */
+  color: #bbb;
+}
+
+.formGroup input:focus,
+.formGroup select:focus {
+  border-color: #b51e2a;
+  box-shadow: 0 0 0 1px #b51e2a;
+}
+
+.modalActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.cancelBtn {
+  flex: 1;
+  padding: 0.5rem;
+  background-color: #2a2a2a;
+  color: #aaa;
+  border: 1px solid #333;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancelBtn:hover {
+  background-color: #333;
+}
+
+.saveBtn {
+  flex: 1;
+  padding: 0.5rem;
+  background-color: #b51e2a;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.saveBtn:hover {
+  background-color: #9c1923;
+}
+/* Reemplaza el .iconBtn que tienes por este y añade las nuevas clases */
+.iconBtn {
+  background: none;
+  border: none;
+  color: #bbb; /* Color neutral por defecto para el botón de editar */
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  margin-left: 0.5rem;
+  transition: color 0.2s, background-color 0.2s;
+  opacity: 0.8;
+}
+
+.iconBtn:hover {
+  background-color: #1a1a1a;
+  opacity: 1;
+}
+
+/* Colores originales para tus iconos */
+.inc {
+  color: #ef4444; /* Rojo para inactivar (FaBan) */
+}
+
+.chek {
+  color: #10b981; /* Verde para activar (FaCheckCircle) */
+}
+
+/* El botón de editar se iluminará en blanco al pasar el mouse */
+.iconBtn:hover svg {
+  color: #fff; 
+}
+/* --- ESTILOS PARA EL CAMPO DE CONTRASEÑA --- */
+.passwordWrapper {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  width: 100%; /* Asegura que tome todo el ancho del modal */
+}
+
+.passwordWrapper input {
+  flex: 1; /* Esto hace que el input se estire y empuje los iconos a la derecha */
+  min-width: 0; /* Previene desbordamientos en flexbox */
+}
+
+.actionBtn {
+  background: none; /* Fondo transparente como en tu diseño */
+  color: #888;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background-color 0.2s;
+  font-size: 1.1rem;
+}
+
+.actionBtn:hover {
+  color: #fff;
+  background-color: #333; /* Un gris oscuro al pasar el mouse para feedback visual */
 }
