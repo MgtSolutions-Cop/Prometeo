@@ -15,7 +15,7 @@ export async function createEntryRadication(payload, currentUser) {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,NOW())
        RETURNING document_id`,
       [
-        payload.asunto || "",
+        payload.subject || "",
         payload.observaciones || "",
         currentUser.user_id,
         payload.dependencia_destino,
@@ -77,7 +77,7 @@ export async function createEntryRadication(payload, currentUser) {
       },
       document: {
         document_id: documentId,
-        subject: payload.asunto
+        subject: payload.subject
       },
       sticker
     };
@@ -90,6 +90,14 @@ export async function createEntryRadication(payload, currentUser) {
     client.release();
   }
 };
+
+export async function createOutputRadication(payload, user) {
+  return createRadicationBase(payload, user, "OUT");
+}
+
+export async function createInternalRadication(payload, user) {
+  return createRadicationBase(payload, user, "INT");
+}
 // En radication.service.js
 // Traeremos el número, el asunto, el estado, la fecha y el remitente (del JSONB)
 export async function getInboundRadications(entityId) {

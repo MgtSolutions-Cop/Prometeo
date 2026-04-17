@@ -1,184 +1,290 @@
+// src/app/dashboard/radicar/page.tsx
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import styles from "./radicar.module.css";
-import { createEntryRadication } from "../../services/api"; // Ajusta la ruta
+import { getInboundRadications } from "../../services/api";
+
+// ── Tipos ──────────────────────────────────────────────
+interface Radicado {
+  radication_number: string;
+  created_at: string;
+  subject: string;
+  status: string;
+  remitente: string;
+}
+
+// ── Línea temporal de estados ──────────────────────────
+// El flujo es: pending → in_review → approved  (o rejected / archived)
+const FLOW: { key: string; label: string }[] = [
+  { key: "pending",   label: "Recibido"  },
+  { key: "in_review", label: "En revisión" },
+  { key: "approved",  label: "Aprobado"  },
+];
+
+// Índice del estado actual en el flujo lineal
+function flowIndex(status: string): number {
+  if (status === "rejected" || status === "archived") return -1; // estado especial
+  return FLOW.findIndex((s) => s.key === status);
+}
+
+//──linea del tiempo del radicado────────────
+function StatusTimeline({ status }: { status: string }) {
+  const pasos = [
+    { key: "pending", label: "Recibido" },
+    { key: "in_review", label: "En revisión" },
+    { key: "approved", label: "Aprobado" },
+  ];
+
+  const currentIndex = pasos.findIndex(p => p.key === status);
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      {pasos.map((p, i) => {
+        const activo = i === currentIndex;
+        const completado = i < currentIndex;
+
+        return (
+          <div key={p.key} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            
+            {/* Línea */}
+            {i > 0 && (
+              <div style={{
+                width: "20px",
+                height: "2px",
+                backgroundColor: completado ? "#22c55e" : "#e5e7eb"
+              }} />
+            )}
+
+            {/* Punto */}
+            <div style={{
+              width: "10px",
+              height: "10px",
+              borderRadius: "50%",
+              backgroundColor: activo
+                ? "#22c55e"
+                : completado
+                ? "#22c55e"
+                : "#d1d5db"
+            }} />
+
+            {/* Texto */}
+            <span style={{
+              fontSize: "12px",
+              color: activo || completado ? "#22c55e" : "#9ca3af",
+              fontWeight: activo ? "600" : "400"
+            }}>
+              {p.label}
+            </span>
+
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+// ── Helpers ────────────────────────────────────────────
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleString("es-CO", {
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
+
+const TIPO_LABELS: Record<string, string> = {
+  IN:  "Entrada",
+  OUT: "Salida",
+  INT: "Interno",
+};
+
+// ── Página principal ───────────────────────────────────
+const FILTROS = ["Todos", "Entrada", "Salida", "Interno"];
 
 export default function RadicarPage() {
-  const [loading, setLoading] = useState(false);
-  const [successData, setSuccessData] = useState<any>(null);
+  const [radicados, setRadicados] = useState<Radicado[]>([]);
+  const [loading,   setLoading]   = useState(true);
+  const [error,     setError]     = useState<string | null>(null);
+  const [filtro,    setFiltro]    = useState("Todos");
+  const [busqueda,  setBusqueda]  = useState("");
 
-  // Estado con todos los campos requeridos por el backend
-  const [formData, setFormData] = useState({
-    fecha_documento: "",
-    medio_correspondencia: "Correo Electrónico",
-    cedula_nit: "",
-    entidad_origen: "",
-    remitente: "",
-    tipo_documento: "Oficio",
-    dependencia_destino: "",
-    destinatario: "",
-    asunto: "",
-    correo: "", // Opcional, pero usado para notificación
-    folios: "1",
-    observaciones: ""
+  useEffect(() => {
+  getInboundRadications()
+    .then((data) => {
+      console.log("RADICADOS:", data); // 👈 CLAVE
+      setRadicados(data);
+    })
+    .catch((e) => setError(e.message))
+    .finally(() => setLoading(false));
+}, []);
+
+  // Derivar tipo desde radication_number (ej: "2025-000001-IN")
+  function getTipo(num: string): string {
+    if (num.endsWith("-IN"))  return "Entrada";
+    if (num.endsWith("-OUT")) return "Salida";
+    if (num.endsWith("-INT")) return "Interno";
+    return "Entrada";
+  }
+
+  const datos = radicados.filter((r) => {
+    const tipo = getTipo(r.radication_number);
+    const matchTipo    = filtro === "Todos" || tipo === filtro;
+    const q            = busqueda.toLowerCase();
+    const matchSearch  =
+      r.radication_number.toLowerCase().includes(q) ||
+      r.remitente?.toLowerCase().includes(q) ||
+      r.subject?.toLowerCase().includes(q);
+    return matchTipo && matchSearch;
   });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      setSuccessData(null);
-      
-      // Llamada a la API
-      const response = await createEntryRadication(formData);
-      
-      // Mostrar éxito y limpiar formulario
-      setSuccessData(response);
-      setFormData({
-        fecha_documento: "",
-        medio_correspondencia: "Correo Electrónico",
-        cedula_nit: "",
-        entidad_origen: "",
-        remitente: "",
-        tipo_documento: "Oficio",
-        dependencia_destino: "",
-        destinatario: "",
-        asunto: "",
-        correo: "",
-        folios: "1",
-        observaciones: ""
-      });
-      
-    } catch (error: any) {
-      alert("Error al radicar: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className={styles.wrap}>
+
+      {/* ── Heading ── */}
       <div className={styles.heading}>
         <div>
-          <h1 className={styles.h1}>Radicación de Entrada</h1>
-          <p className={styles.sub}>Registra y radica documentos externos recibidos</p>
+          <p className={styles.eyebrow}>Gestión documental</p>
+          <h1 className={styles.h1}>Radicados</h1>
+          <p className={styles.sub}>Historial de documentos radicados — Entrada, Salida e Internos</p>
         </div>
-        <span className={styles.badge}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-          </svg>
-          Nuevo radicado
-        </span>
+        <div className={styles.headingActions}>
+          <Link href="/dashboard/radicar/entrada" className={styles.actionBtn}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5"  y1="12" x2="19" y2="12"/>
+            </svg>
+            Nuevo radicado
+          </Link>
+        </div>
       </div>
 
-      <form className={styles.card} onSubmit={handleSubmit}>
-        
-        <div className={styles.formGrid}>
-          {/* Columna Izquierda / Derecha */}
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Fecha del Documento Físico *</label>
-            <input required type="date" name="fecha_documento" value={formData.fecha_documento} onChange={handleChange} className={styles.input} />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Medio de Correspondencia *</label>
-            <select required name="medio_correspondencia" value={formData.medio_correspondencia} onChange={handleChange} className={styles.select}>
-              <option value="Correo Electrónico">Correo Electrónico</option>
-              <option value="Físico / Mensajería">Físico / Mensajería</option>
-              <option value="Ventanilla Única">Ventanilla Única</option>
-            </select>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Cédula / NIT Origen *</label>
-            <input required type="text" name="cedula_nit" value={formData.cedula_nit} onChange={handleChange} className={styles.input} placeholder="Ej: 900123456" />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Entidad / Empresa Origen *</label>
-            <input required type="text" name="entidad_origen" value={formData.entidad_origen} onChange={handleChange} className={styles.input} placeholder="Razón social o Persona natural" />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Nombre del Remitente *</label>
-            <input required type="text" name="remitente" value={formData.remitente} onChange={handleChange} className={styles.input} placeholder="Quien firma el documento" />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Correo Electrónico Remitente</label>
-            <input type="email" name="correo" value={formData.correo} onChange={handleChange} className={styles.input} placeholder="Para notificación de radicado" />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Tipo de Documento *</label>
-            <select required name="tipo_documento" value={formData.tipo_documento} onChange={handleChange} className={styles.select}>
-              <option value="Oficio">Oficio</option>
-              <option value="Derecho de Petición">Derecho de Petición</option>
-              <option value="Factura">Factura</option>
-              <option value="Notificación Judicial">Notificación Judicial</option>
-            </select>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Dependencia Destino *</label>
-            {/* TODO: Esto debe conectarse luego al endpoint de obtener dependencias */}
-            <select required name="dependencia_destino" value={formData.dependencia_destino} onChange={handleChange} className={styles.select}>
-              <option value="">Seleccione una dependencia</option>
-              <option value="1">Secretaría General</option>
-              <option value="2">Departamento Jurídico</option>
-              <option value="3">Archivo Central</option>
-            </select>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Destinatario Específico *</label>
-            <input required type="text" name="destinatario" value={formData.destinatario} onChange={handleChange} className={styles.input} placeholder="A quién va dirigido" />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Número de Folios</label>
-            <input type="number" name="folios" min="1" value={formData.folios} onChange={handleChange} className={styles.input} />
-          </div>
-
-          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-            <label className={styles.label}>Asunto *</label>
-            <input required type="text" name="asunto" value={formData.asunto} onChange={handleChange} className={styles.input} placeholder="Resumen del contenido del documento" />
-          </div>
-
-          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-            <label className={styles.label}>Observaciones</label>
-            <input type="text" name="observaciones" value={formData.observaciones} onChange={handleChange} className={styles.input} placeholder="Anotaciones adicionales al radicar..." />
-          </div>
-
-          {/* Selector de Archivo Físico (Visual por ahora) */}
-          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-            <label className={styles.label}>Archivo Digital (PDF)</label>
-            <label className={styles.fileBox}>
-              <input type="file" className={styles.fileInput} accept=".pdf" />
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.41 17.41a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-              </svg>
-              <span>Seleccionar archivo PDF</span>
-            </label>
-          </div>
+      {/* ── Toolbar ── */}
+      <div className={styles.toolbar}>
+        <div className={styles.searchWrap}>
+          <svg className={styles.searchIcon} width="14" height="14"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            className={styles.searchInput}
+            placeholder="Buscar por número, remitente o asunto..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
         </div>
+        <div className={styles.filtros}>
+          {FILTROS.map((f) => (
+            <button
+              key={f}
+              className={`${styles.filtroBtn} ${filtro === f ? styles.filtroActive : ""}`}
+              onClick={() => setFiltro(f)}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+      </div>
 
-        <button type="submit" className={styles.submitButton} disabled={loading}>
-          {loading ? "Radicando documento..." : "Radicar documento"}
-        </button>
+      {/* ── Estados ── */}
+      {loading && <p className={styles.stateMsg}>Cargando radicados...</p>}
+      {error   && <p className={`${styles.stateMsg} ${styles.stateMsgError}`}>{error}</p>}
+      {!loading && !error && datos.length === 0 && (
+        <p className={styles.stateMsg}>Sin radicados para mostrar.</p>
+      )}
 
-        {successData && (
-          <div className={styles.successMessage}>
-            <strong>¡Documento Radicado Exitosamente!</strong><br />
-            Número de Radicado: <span style={{fontSize: '1.2em', fontWeight: 'bold'}}>{successData.radication.radication_number}</span>
-          </div>
-        )}
-      </form>
+      {/* ── Tabla ── */}
+      {!loading && !error && datos.length > 0 && (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th className={styles.th}>N° Radicado</th>
+                <th className={styles.th}>Tipo</th>
+                <th className={styles.th}>Remitente</th>
+                <th className={styles.th}>Asunto</th>
+                <th className={styles.th}>Fecha</th>
+                <th className={styles.th}>Flujo</th>
+                <th className={styles.th}>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {datos.map((r) => {
+                const tipo = getTipo(r.radication_number);
+                return (
+                  <tr key={r.radication_number} className={styles.tr}>
+
+                    <td className={`${styles.td} ${styles.tdId}`}>
+                      {r.radication_number}
+                    </td>
+
+                    <td className={styles.td}>
+                      <span className={`${styles.tipoBadge} ${
+                        tipo === "Entrada" ? styles.tipoEntrada :
+                        tipo === "Salida"  ? styles.tipoSalida  :
+                                            styles.tipoInterno
+                      }`}>
+                        {tipo}
+                      </span>
+                    </td>
+
+                    <td className={styles.td}>{r.remitente ?? "—"}</td>
+
+                    <td className={`${styles.td} ${styles.tdAsunto}`}>
+                      {r.subject}
+                    </td>
+
+                    <td className={`${styles.td} ${styles.tdMuted}`}>
+                      {formatDate(r.created_at)}
+                    </td>
+
+                    {/* Línea temporal */}
+                    <td>
+                      <StatusTimeline status={r.status ?? "pending"} />
+                    </td>
+
+                    {/* Acciones */}
+                    <td className={styles.td}>
+                      <div className={styles.acciones}>
+                        <button className={styles.accionBtn} title="Ver detalle">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" strokeWidth="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
+                        </button>
+                        <button className={styles.accionBtn} title="Descargar sticker">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                          </svg>
+                        </button>
+                        <button className={`${styles.accionBtn} ${styles.accionDelete}`} title="Archivar">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" strokeWidth="2">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6l-1 14H6L5 6"/>
+                            <path d="M10 11v6"/><path d="M14 11v6"/>
+                            <path d="M9 6V4h6v2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <p className={styles.count}>
+        {datos.length} radicado{datos.length !== 1 ? "s" : ""} encontrado{datos.length !== 1 ? "s" : ""}
+      </p>
     </div>
   );
 }

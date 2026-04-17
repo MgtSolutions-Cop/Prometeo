@@ -47,7 +47,7 @@ export async function sendEntryNotification(emailPayload) {
         <span style="color: #ef4444; font-size: 18px; font-weight: bold; margin-left: 5px;">${emailPayload.radicationNumber}</span>
       </p>
       <p style="margin: 0 0 12px 0; font-size: 15px;">
-        <strong style="color: #ffffff;">Asunto:</strong> <span style="color: #d4d4d4; margin-left: 5px;">${emailPayload.asunto}</span>
+        <strong style="color: #ffffff;">Asunto:</strong> <span style="color: #d4d4d4; margin-left: 5px;">${emailPayload.subject}</span>
       </p>
       <p style="margin: 0; font-size: 15px;">
         <strong style="color: #ffffff;">Remitente:</strong> <span style="color: #d4d4d4; margin-left: 5px;">${emailPayload.remitente}</span>

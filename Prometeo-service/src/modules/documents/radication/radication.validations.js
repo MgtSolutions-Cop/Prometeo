@@ -14,7 +14,7 @@ export function validateEntryPayload(payload) {
     if (!payload.tipo_documento) errors.push("tipo_documento is required");
     if (!payload.dependencia_destino) errors.push("dependencia_destino is required");
     if (!payload.destinatario) errors.push("destinatario is required");
-    if (!payload.asunto) errors.push("asunto is required");
+    if (!payload.subject) errors.push("asunto is required");
   
     // optional small checks
     if (payload.folios && isNaN(Number(payload.folios))) {

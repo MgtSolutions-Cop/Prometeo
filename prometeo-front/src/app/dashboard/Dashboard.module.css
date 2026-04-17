@@ -1,5 +1,4 @@
 /* src/app/dashboard/Dashboard.module.css */
-
 .container {
   background-color: #0a0a0a;
   color: #ffffff;
@@ -8,47 +7,27 @@
   position: relative;
 }
 
-/* ── OVERLAY ── */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(2px);
-  z-index: 40;
-  animation: fadeIn 0.2s ease;
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-/* ── SIDEBAR (drawer flotante, sin ocupar espacio) ── */
+/* ── SIDEBAR (fijo, colapsable) ── */
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
-  width: 15rem;
+  width: 4rem; /* colapsado: solo iconos */
   background-color: #0f0f0f;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 1.5rem 1rem 1.25rem;
+  padding: 1.5rem 0.65rem 1.25rem;
   display: flex;
   flex-direction: column;
   z-index: 50;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5),
               1px 0 0 rgba(229, 57, 53, 0.1);
-
-  /* Cerrado: oculto */
-  transform: translateX(-100%);
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity   0.28s ease;
+  overflow: hidden;
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .sidebarOpen {
-  transform: translateX(0);
-  opacity: 1;
-  pointer-events: all;
+  width: 15rem; /* expandido: iconos + texto */
 }
 
 /* ── NAV ── */
@@ -57,6 +36,7 @@
   flex-direction: column;
   gap: 2px;
   flex: 1;
+  margin-top: 1rem; /* espacio bajo el logo en el sidebar */
 }
 
 .navLink {
@@ -66,37 +46,71 @@
   text-decoration: none;
   border: 1px solid transparent;
   transition: color 0.2s, background 0.2s, border-color 0.2s;
+  display: block;
+  padding: 0.4rem;
 }
+
 .navItem {
   display: flex;
   align-items: center;
   gap: 0.7rem;
   font-size: 0.875rem;
   font-weight: 500;
+  white-space: nowrap; /* evita wrap del texto al animar */
 }
+
+.navLabel {
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+}
+
+.sidebarOpen .navLabel {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .icon {
   font-size: 1rem;
   flex-shrink: 0;
   color: rgba(255, 255, 255, 0.35);
   transition: color 0.2s, transform 0.25s ease;
 }
+
+.iconBox {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
 .navLink:hover {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.04);
 }
+
 .navLink:hover .icon {
   color: #E53935;
   transform: scale(1.15);
 }
+
 .navLinkActive {
   color: #ffffff;
   background: rgba(229, 57, 53, 0.12);
   border-color: rgba(229, 57, 53, 0.25);
+  background: transparent;
 }
+
 .navLinkActive .icon {
   color: #E53935;
 }
 
+.navLink:hover .iconBox {
+  background: rgba(255, 255, 255, 0.06);
+}
 /* ── DIVIDER ── */
 .navDivider {
   height: 1px;
@@ -117,34 +131,116 @@
   font-weight: 500;
   border: 1px solid rgba(255, 255, 255, 0.06);
   transition: all 0.2s;
+  white-space: nowrap;
 }
+
 .logout:hover {
   color: #E53935;
   border-color: rgba(229, 57, 53, 0.3);
   background: rgba(229, 57, 53, 0.07);
 }
+
 .logoutIcon {
   font-size: 1rem;
   flex-shrink: 0;
   transition: transform 0.25s ease, color 0.2s;
 }
+
 .logout:hover .logoutIcon {
   transform: translateX(-3px);
   color: #E53935;
 }
 
-/* ── MAIN (100% ancho, el sidebar no empuja nada) ── */
+.logoutLabel {
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.sidebarOpen .logoutLabel {
+  opacity: 1;
+}
+
+/* ── MAIN (margen izquierdo = ancho sidebar colapsado) ── */
 .main {
   flex: 1;
-  width: 100%;
+  margin-left: 4rem; /* igual al sidebar colapsado */
   padding: 1.25rem 2rem 2rem;
   background-color: #111111;
   overflow-y: auto;
   min-height: 100vh;
+  transition: margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mainShifted {
+  margin-left: 15rem; /* igual al sidebar expandido */
 }
 
 .pageContent {
   max-width: 1200px;
   margin: 0 auto;
   padding-top: 1rem;
+}
+/* ── SUBMENU ── */
+.navGroup {
+  position: relative;
+}
+
+.chevron {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.chevronOpen {
+  transform: rotate(90deg);
+  color: #E53935;
+}
+
+.subMenu {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 0 4px 2.25rem;
+  animation: slideDown 0.18s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.subLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.4rem 0.65rem;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+  transition: color 0.2s, background 0.2s;
+  white-space: nowrap;
+}
+
+.subLink:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.subLinkActive {
+  color: #E53935;
+}
+
+.subDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  flex-shrink: 0;
+}
+
+.subLinkActive .subDot {
+  background: #E53935;
 }

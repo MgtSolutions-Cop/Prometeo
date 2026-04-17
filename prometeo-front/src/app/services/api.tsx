@@ -44,6 +44,8 @@ async function refreshAccessToken() {
     return false;
   }
 }
+
+
 export async function logoutUser() {
   try{
   const response =await fetch(`${API_URL}/auth/logout`,{
@@ -151,16 +153,40 @@ export async function toggleRoleState(id: number) {
     method: "PATCH",
   });
 }
-// --- RADICACIÓN ---
+
+// --- RADICACIÓN ---entrada
 export async function createEntryRadication(data: any) {
   return await fetchWithAuth("/radication/entry", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
+// --- RADICACIÓN ---salida
+export async function createOutputRadication(data: any) {
+  return await fetchWithAuth("/radication/output", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+// --- RADICACIÓN ---interno
+export async function createInternalRadication(data: any) {
+  return await fetchWithAuth("/radication/internal", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+  
 // Stiker
 export async function getInboundRadications() {
-  return await fetchWithAuth("/radication/inbound");
+  const data = await fetchWithAuth("/radication/inbound");
+
+  return data.map((r: any) => ({
+    radication_number: r.radication_number,
+    created_at: r.created_at,
+    subject: r.subject || r.asunto,
+    status: r.status || r.estado || "pending",
+    remitente: r.remitente || r.sender || "—"
+  }));
 }
 
 // Función para descargar imágenes protegidas

@@ -1,102 +1,138 @@
+// src/app/dashboard/layout.tsx
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import styles from "./Dashboard.module.css";
 import { logoutUser } from "../services/api";
 import SessionProvider from "../components/SessionProvider";
 import Header from "./header";
 import {
-  FaChartBar,
-  FaEnvelope,
-  FaFolder,
-  FaTasks,
-  FaUserCog,
-  FaBuilding,
-  FaSignOutAlt,
-  FaHome,
-  FaRegAddressCard,
+  FaChartBar, FaEnvelope, FaFolder, FaTasks,
+  FaUserCog, FaBuilding, FaSignOutAlt, FaHome, FaRegAddressCard,
 } from "react-icons/fa";
 
 const navItems = [
-  { href: "/dashboard",                     icon: FaHome,     label: "Home" },
-  { href: "/dashboard/metrics",             icon: FaChartBar, label: "Métricas" },
-  { href: "/dashboard/radicar",             icon: FaEnvelope, label: "Radicación" },
-  { href: "/dashboard/labels", icon: FaFolder,   label: "Rotulos" },
-  { href: "/dashboard/pending.activities",  icon: FaTasks,    label: "Actividades Pendientes" },
-  { href: "/dashboard/user.management",     icon: FaUserCog,  label: "Gestión de Usuarios" },
-  { href: "/dashboard/create.rol", icon: FaRegAddressCard, label: "Crear Roles" },
-  { href: "/dashboard/create.dependencies", icon: FaBuilding, label: "Crear Dependencias" },
- 
+  { href: "/dashboard",                     icon: FaHome,           label: "Home",                   sub: null },
+  { href: "/dashboard/metrics",             icon: FaChartBar,       label: "Métricas",               sub: null },
+  {
+    href: "/dashboard/radicar",
+    icon: FaEnvelope,
+    label: "Radicación",
+    sub: [
+      { href: "/dashboard/radicar/input",  label: "Entrada" },
+      { href: "/dashboard/radicar/output",   label: "Salida" },
+      { href: "/dashboard/radicar/internal",  label: "Interno" },
+    ],
+  },
+  { href: "/dashboard/labels",              icon: FaFolder,         label: "Rotulos",                sub: null },
+  { href: "/dashboard/pending.activities",  icon: FaTasks,          label: "Actividades Pendientes", sub: null },
+  { href: "/dashboard/user.management",     icon: FaUserCog,        label: "Gestión de Usuarios",    sub: null },
+  { href: "/dashboard/create.rol",          icon: FaRegAddressCard, label: "Crear Roles",            sub: null },
+  { href: "/dashboard/create.dependencies", icon: FaBuilding,       label: "Crear Dependencias",     sub: null },
 ];
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-//creamos la funcion para invocarla en el boton 
+  const [hoveredSub, setHoveredSub] = useState<string | null>(null);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleLogout = async () => {
-    //invocamos la funcion del back 
-   await logoutUser();
-   //cerrarmos el menu lateral
-    setOpen(false)
-    //redirigimos al login 
+    await logoutUser();
+    setOpen(false);
     router.push("/login");
+  };
+
+  const showSub = (href: string) => {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    setHoveredSub(href);
+  };
+
+  const hideSub = () => {
+    hideTimer.current = setTimeout(() => setHoveredSub(null), 150);
   };
 
   return (
     <SessionProvider>
-    <div className={styles.container}>
+      <div className={styles.container}>
+        <aside className={`${styles.sidebar} ${open ? styles.sidebarOpen : ""}`}>
+          <nav className={styles.nav}>
+            {navItems.map(({ href, icon: Icon, label, sub }) => {
+              const isActive = pathname === href || pathname.startsWith(href + "/");
+              const isSubOpen = hoveredSub === href;
 
-      {/* Overlay — cierra el sidebar al hacer click fuera */}
-      {open && (
-        <div className={styles.overlay} onClick={() => setOpen(false)} />
-      )}
+              return (
+                <div
+                  key={href}
+                  className={styles.navGroup}
+                  onMouseEnter={() => sub && open && showSub(href)}
+                  onMouseLeave={() => sub && hideSub()}
+                >
+                  <Link
+                    href={href}
+                    className={`${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}
+                  >
+                    <div className={styles.navItem}>
+                      <div className={styles.iconBox}>
+                        <Icon className={styles.icon} />
+                      </div>
+                      <span className={styles.navLabel}>{label}</span>
+                      {sub && open && (
+                        <svg
+                          className={`${styles.chevron} ${isSubOpen ? styles.chevronOpen : ""}`}
+                          width="12" height="12" viewBox="0 0 24 24"
+                          fill="none" stroke="currentColor" strokeWidth="2"
+                        >
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      )}
+                    </div>
+                  </Link>
 
-      {/* ── SIDEBAR (drawer flotante) ── */}
-      <aside className={`${styles.sidebar} ${open ? styles.sidebarOpen : ""}`}>
-        <nav className={styles.nav}>
-          {navItems.map(({ href, icon: Icon, label }) => {
-            const isActive = pathname === href;
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}
-                onClick={() => setOpen(false)}
-              >
-                <div className={styles.navItem}>
-                  <Icon className={styles.icon} />
-                  <span>{label}</span>
+                  {/* Submenu — solo visible cuando sidebar expandido y hover */}
+                  {sub && isSubOpen && open && (
+                    <div
+                      className={styles.subMenu}
+                      onMouseEnter={() => showSub(href)}
+                      onMouseLeave={() => hideSub()}
+                    >
+                      {sub.map((s) => (
+                        <Link
+                          key={s.href}
+                          href={s.href}
+                          className={`${styles.subLink} ${pathname === s.href ? styles.subLinkActive : ""}`}
+                          onClick={() => setHoveredSub(null)}
+                        >
+                          <span className={styles.subDot} />
+                          {s.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </Link>
-            );
-          })}
-        </nav>
+              );
+            })}
+          </nav>
 
-        <div className={styles.navDivider} />
+          <div className={styles.navDivider} />
 
-        <button className={styles.logout} 
-          onClick={handleLogout}
-          style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }} // Puedes mover estos estilos a tu .module.css
-        >
-          <FaSignOutAlt className={styles.logoutIcon} />
-          <span>Cerrar sesión</span>
-        </button>
-      </aside>
+          <button
+            className={styles.logout}
+            onClick={handleLogout}
+            style={{ background: "none", border: "none", width: "100%", textAlign: "left", cursor: "pointer" }}
+          >
+            <FaSignOutAlt className={styles.logoutIcon} />
+            <span className={styles.logoutLabel}>Cerrar sesión</span>
+          </button>
+        </aside>
 
-      {/* ── MAIN ── */}
-      <main className={styles.main}>
-        {/* Header lleva el botón toggle */}
-        <Header userName="Jaider" onMenuClick={() => setOpen((v) => !v)} />
-        <div className={styles.pageContent}>{children}</div>
-      </main>
-    </div>
+        <main className={`${styles.main} ${open ? styles.mainShifted : ""}`}>
+          <Header userName="Jaider" onMenuClick={() => setOpen((v) => !v)} />
+          <div className={styles.pageContent}>{children}</div>
+        </main>
+      </div>
     </SessionProvider>
   );
 }
