@@ -205,3 +205,29 @@ export async function getPrivateSticker(filename: string) {
   // Creamos una URL temporal en el navegador para esa imagen
   return URL.createObjectURL(blob);
 }
+
+//=========================
+//Download PDF
+//=========================
+export async function downloadRadicationPDF(radicationNumber: string): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/radication/pdf/${encodeURIComponent(radicationNumber)}`,
+    { method: "GET", credentials: "include" }
+  );
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || "Error al generar el PDF");
+  }
+
+  // Crear blob y disparar descarga en el navegador
+  const blob = await response.blob();
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href     = url;
+  link.download = `Radicado_${radicationNumber}.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}

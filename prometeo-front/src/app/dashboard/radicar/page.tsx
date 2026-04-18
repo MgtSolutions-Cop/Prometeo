@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import styles from "./radicar.module.css";
-import { getInboundRadications } from "../../services/api";
+import { getInboundRadications, downloadRadicationPDF } from "../../services/api";
 
 // ── Tipos ──────────────────────────────────────────────
 interface Radicado {
@@ -107,7 +107,18 @@ export default function RadicarPage() {
   const [error,     setError]     = useState<string | null>(null);
   const [filtro,    setFiltro]    = useState("Todos");
   const [busqueda,  setBusqueda]  = useState("");
+  const [downloadingPDF, setDownloadingPDF] = useState<string | null>(null);
 
+  async function handleDownloadPDF(radicationNumber: string) {
+    try {
+      setDownloadingPDF(radicationNumber);
+      await downloadRadicationPDF(radicationNumber);
+    } catch (e: any) {
+      alert("Error al descargar PDF: " + e.message);
+    } finally {
+      setDownloadingPDF(null);
+    }
+  }
   useEffect(() => {
   getInboundRadications()
     .then((data) => {
@@ -247,12 +258,27 @@ export default function RadicarPage() {
                     {/* Acciones */}
                     <td className={styles.td}>
                       <div className={styles.acciones}>
-                        <button className={styles.accionBtn} title="Ver detalle">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" strokeWidth="2">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                          </svg>
+                        <button
+                          className={styles.accionBtn}
+                          title="Descargar PDF"
+                          onClick={() => handleDownloadPDF(r.radication_number)}
+                          disabled={downloadingPDF === r.radication_number}
+                          style={{ opacity: downloadingPDF === r.radication_number ? 0.5 : 1 }}
+                        >
+                          {downloadingPDF === r.radication_number ? (
+                            // Spinner simple
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                              stroke="currentColor" strokeWidth="2" style={{ animation: "spin 1s linear infinite" }}>
+                              <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                            </svg>
+                          ) : (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                              stroke="currentColor" strokeWidth="2">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                              <polyline points="7 10 12 15 17 10"/>
+                              <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                          )}
                         </button>
                         <button className={styles.accionBtn} title="Descargar sticker">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
