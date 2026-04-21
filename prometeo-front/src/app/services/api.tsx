@@ -231,3 +231,16 @@ export async function downloadRadicationPDF(radicationNumber: string): Promise<v
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+// Agrega en services/api.tsx — versión que retorna URL para preview
+export async function getRadicationPDFUrl(radicationNumber: string): Promise<string> {
+  const response = await fetch(
+    `${API_URL}/radication/pdf/${encodeURIComponent(radicationNumber)}`,
+    { method: "GET", credentials: "include" }
+  );
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || "Error al generar el PDF");
+  }
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
+}

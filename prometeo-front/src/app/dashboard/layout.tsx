@@ -20,9 +20,9 @@ const navItems = [
     icon: FaEnvelope,
     label: "Radicación",
     sub: [
-      { href: "/dashboard/radicar/input",  label: "Entrada" },
+      { href: "/dashboard/radicar/input",    label: "Entrada" },
       { href: "/dashboard/radicar/output",   label: "Salida" },
-      { href: "/dashboard/radicar/internal",  label: "Interno" },
+      { href: "/dashboard/radicar/internal", label: "Interno" },
     ],
   },
   { href: "/dashboard/labels",              icon: FaFolder,         label: "Rotulos",                sub: null },
@@ -38,11 +38,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [open, setOpen] = useState(false);
   const [hoveredSub, setHoveredSub] = useState<string | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sidebarTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleLogout = async () => {
     await logoutUser();
     setOpen(false);
     router.push("/login");
+  };
+
+  // Sidebar: abre con hover sobre el aside
+  const handleSidebarEnter = () => {
+    if (sidebarTimer.current) clearTimeout(sidebarTimer.current);
+    setOpen(true);
+  };
+
+  // Sidebar: cierra con un delay al salir del aside
+  const handleSidebarLeave = () => {
+    sidebarTimer.current = setTimeout(() => {
+      setOpen(false);
+      setHoveredSub(null);
+    }, 300);
   };
 
   const showSub = (href: string) => {
@@ -57,17 +72,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <SessionProvider>
       <div className={styles.container}>
-        <aside className={`${styles.sidebar} ${open ? styles.sidebarOpen : ""}`}>
+        <aside
+          className={`${styles.sidebar} ${open ? styles.sidebarOpen : ""}`}
+          onMouseEnter={handleSidebarEnter}
+          onMouseLeave={handleSidebarLeave}
+        >
           <nav className={styles.nav}>
             {navItems.map(({ href, icon: Icon, label, sub }) => {
-              const isActive = pathname === href || pathname.startsWith(href + "/");
+              const isActive =
+                href === "/dashboard"
+                  ? pathname === "/dashboard"
+                  : pathname === href || pathname.startsWith(href + "/");
               const isSubOpen = hoveredSub === href;
 
               return (
                 <div
                   key={href}
                   className={styles.navGroup}
-                  onMouseEnter={() => sub && open && showSub(href)}
+                  onMouseEnter={() => sub && showSub(href)}
                   onMouseLeave={() => sub && hideSub()}
                 >
                   <Link
@@ -91,7 +113,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                   </Link>
 
-                  {/* Submenu — solo visible cuando sidebar expandido y hover */}
                   {sub && isSubOpen && open && (
                     <div
                       className={styles.subMenu}
@@ -129,7 +150,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </aside>
 
         <main className={`${styles.main} ${open ? styles.mainShifted : ""}`}>
-          <Header userName="Jaider" onMenuClick={() => setOpen((v) => !v)} />
+          <Header userName="Jaider" />
           <div className={styles.pageContent}>{children}</div>
         </main>
       </div>

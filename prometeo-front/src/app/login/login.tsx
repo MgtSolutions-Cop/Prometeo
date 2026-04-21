@@ -15,7 +15,7 @@ export default function Login() {
       setLoading(true);
       const data = await loginUser(email, password);
       console.log("Login exitoso:", data);
-      router.push("/dashboard/metrics");
+      router.push("/dashboard");
     } catch (error: any) {
       alert(error.message || "Credenciales incorrectas");
     } finally {

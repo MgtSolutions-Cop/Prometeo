@@ -16,19 +16,15 @@
   gap: 0.85rem;
 }
 
-/* Botón toggle del sidebar (logo + nombre) */
-.menuBtn {
+.brand {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 10px;
   padding: 0.4rem 0.65rem 0.4rem 0.45rem;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
   flex-shrink: 0;
+  /* Sin background, sin border, sin cursor, sin hover */
 }
+
 .menuBtn:hover {
   border-color: rgba(229, 57, 53, 0.4);
   background: rgba(229, 57, 53, 0.06);

@@ -39,16 +39,6 @@
   margin-top: 1rem; /* espacio bajo el logo en el sidebar */
 }
 
-.navLink {
-  padding: 0.55rem 0.65rem;
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.45);
-  text-decoration: none;
-  border: 1px solid transparent;
-  transition: color 0.2s, background 0.2s, border-color 0.2s;
-  display: block;
-  padding: 0.4rem;
-}
 
 .navItem {
   display: flex;
@@ -87,21 +77,34 @@
   border-radius: 10px;
   transition: all 0.2s ease;
 }
+
+.navLink {
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.45);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+  display: block;
+}
+
 .navLink:hover {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.04);
 }
 
-.navLink:hover .icon {
+.navLinkActive .icon {
   color: #E53935;
-  transform: scale(1.15);
+}
+
+.navLinkActive .iconBox {
+  background: rgba(229, 57, 53, 0.15);
 }
 
 .navLinkActive {
   color: #ffffff;
-  background: rgba(229, 57, 53, 0.12);
+  background: rgba(229, 57, 53, 0.12);   /* ← UN solo background */
   border-color: rgba(229, 57, 53, 0.25);
-  background: transparent;
 }
 
 .navLinkActive .icon {
