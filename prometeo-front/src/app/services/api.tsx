@@ -45,21 +45,19 @@ async function refreshAccessToken() {
   }
 }
 
-
 export async function logoutUser() {
-  try{
-  const response =await fetch(`${API_URL}/auth/logout`,{
-    method :"POST",
-    credentials:"include"
-  });
-  if (!response.ok) {
-    throw new Error("ERROR AL INICIAR SESION ");
+  try {
+    const response = await fetch(`${API_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include"
+    });
+    localStorage.removeItem("prometeo_user"); // ← agrega esta línea
+    if (!response.ok) throw new Error("Error al cerrar sesión");
+    return true;
+  } catch (error) {
+    console.error("Error de logout", error);
+    return false;
   }
-  return true;
- }catch (error){
-  console.error("Error de logout",error);
-  return false;
- }
 }
 //  El Wrapper mágico para usar en el resto de la aplicación
 export async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
@@ -243,4 +241,23 @@ export async function getRadicationPDFUrl(radicationNumber: string): Promise<str
   }
   const blob = await response.blob();
   return URL.createObjectURL(blob);
+}
+//====================
+//cambio de passsword
+//====================
+export function getCurrentUser() {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem("prometeo_user");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function changePassword(currentPassword: string, newPassword: string) {
+  return await fetchWithAuth("/users/me/password", {
+    method: "PATCH",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
 }
