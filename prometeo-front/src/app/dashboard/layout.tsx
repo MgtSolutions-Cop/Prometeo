@@ -9,7 +9,7 @@ import SessionProvider from "../components/SessionProvider";
 import Header from "./header";
 import {
   FaChartBar, FaEnvelope, FaFolder, FaTasks,
-  FaUserCog, FaBuilding, FaSignOutAlt, FaHome, FaRegAddressCard,
+  FaUserCog, FaBuilding, FaSignOutAlt, FaHome, FaRegAddressCard,FaFilePdf
 } from "react-icons/fa";
 
 const navItems = [
@@ -30,6 +30,7 @@ const navItems = [
   { href: "/dashboard/user.management",     icon: FaUserCog,        label: "Gestión de Usuarios",    sub: null },
   { href: "/dashboard/create.rol",          icon: FaRegAddressCard, label: "Crear Roles",            sub: null },
   { href: "/dashboard/create.dependencies", icon: FaBuilding,       label: "Crear Dependencias",     sub: null },
+  { href: "/dashboard/template",            icon: FaFilePdf,        label: "Modificar Plantilla",    sub: null},
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
