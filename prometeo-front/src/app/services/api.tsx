@@ -1,17 +1,46 @@
-import { Console, error } from "console";
+// ─────────────────────────────────────────────
+// api.tsx — Capa de comunicación con el backend
+// Todas las peticiones autenticadas pasan por
+// fetchWithAuth que maneja el refresh automático
+// ─────────────────────────────────────────────
 
-// src/services/api.ts
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
-// 1. Mantenemos tu función de login intacta
+// ─────────────────────────────────────────────
+// TIPOS — definen la forma del usuario que
+// guardamos en localStorage y usamos en el app
+// ─────────────────────────────────────────────
+export interface UserPermissions {
+  can_create_users: boolean;
+  can_assign_roles: boolean;
+  can_configure_trd: boolean;
+  can_radicate_documents: boolean;
+}
+
+export interface StoredUser {
+  id: number;
+  full_name: string;
+  email: string;
+  role_id: number;
+  role_name?: string;
+  entity_id: number;
+  permissions: UserPermissions;
+}
+
+// ─────────────────────────────────────────────
+// loginUser
+// Envía credenciales, recibe cookies httpOnly
+// y guarda el objeto user en localStorage para
+// que el navbar y otros componentes lo lean
+// sin hacer peticiones extra al servidor
+// ─────────────────────────────────────────────
 export async function loginUser(email: string, password: string) {
   try {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include", // Guarda las cookies iniciales
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // envía/recibe cookies
       body: JSON.stringify({ email, password }),
     });
 
@@ -20,24 +49,39 @@ export async function loginUser(email: string, password: string) {
       throw new Error(errorData.message || "Error al iniciar sesión");
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    // ─────────────────────────────────────────────
+    // Guardamos el usuario completo en localStorage.
+    // Incluye role_id y permissions para que el
+    // navbar pueda filtrar sin petición adicional.
+    // IMPORTANTE: nunca guardar tokens aquí,
+    // esos van solo en cookies httpOnly.
+    // ─────────────────────────────────────────────
+    if (data.user && typeof window !== "undefined") {
+      localStorage.setItem("prometeo_user", JSON.stringify(data.user));
+    }
+
+    return data;
   } catch (error: any) {
     console.error("Error en login:", error.message);
     throw error;
   }
 }
 
-// 2. Nueva función para refrescar el token
+// ─────────────────────────────────────────────
+// refreshAccessToken
+// Llama al endpoint /auth/refresh enviando
+// la cookie del refreshToken automáticamente.
+// Si falla significa que la sesión expiró
+// ─────────────────────────────────────────────
 async function refreshAccessToken() {
   try {
     const response = await fetch(`${API_URL}/auth/refresh`, {
       method: "POST",
-      credentials: "include", // Importante para enviar la cookie del refreshToken
+      credentials: "include",
     });
-
-    if (!response.ok) {
-      throw new Error("No se pudo refrescar el token");
-    }
+    if (!response.ok) throw new Error("No se pudo refrescar el token");
     return true;
   } catch (error) {
     console.error("Error al refrescar token:", error);
@@ -45,13 +89,21 @@ async function refreshAccessToken() {
   }
 }
 
+// ─────────────────────────────────────────────
+// logoutUser
+// Limpia cookies en el servidor y borra el
+// usuario de localStorage en el cliente
+// ─────────────────────────────────────────────
 export async function logoutUser() {
   try {
     const response = await fetch(`${API_URL}/auth/logout`, {
       method: "POST",
-      credentials: "include"
+      credentials: "include",
     });
-    localStorage.removeItem("prometeo_user"); // ← agrega esta línea
+    // Limpiamos localStorage al cerrar sesión
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("prometeo_user");
+    }
     if (!response.ok) throw new Error("Error al cerrar sesión");
     return true;
   } catch (error) {
@@ -59,12 +111,21 @@ export async function logoutUser() {
     return false;
   }
 }
-//  El Wrapper mágico para usar en el resto de la aplicación
-export async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
-  // Aseguramos que siempre se envíen las cookies en cada petición
-  const fetchOptions = {
+
+// ─────────────────────────────────────────────
+// fetchWithAuth — wrapper universal
+// Toda petición autenticada pasa por aquí.
+// Si el servidor responde 401 (token expirado),
+// intenta refresh automático y reintenta.
+// Si el refresh falla, dispara SESSION_EXPIRED
+// ─────────────────────────────────────────────
+export async function fetchWithAuth(
+  endpoint: string,
+  options: RequestInit = {}
+) {
+  const fetchOptions: RequestInit = {
     ...options,
-    credentials: "include" as RequestCredentials, 
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...options.headers,
@@ -73,27 +134,23 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
 
   let response = await fetch(`${API_URL}${endpoint}`, fetchOptions);
 
-  // Si el backend nos dice que no estamos autorizados (token expirado)
+  // Token expirado — intentamos renovarlo
   if (response.status === 401) {
     console.log("Token expirado, intentando refrescar...");
-    
-    // Intentamos obtener un nuevo token
     const tokenRefreshed = await refreshAccessToken();
 
     if (tokenRefreshed) {
-      // Si tuvimos éxito, repetimos la petición original automáticamente
+      // Reintentamos la petición original con el nuevo token
       response = await fetch(`${API_URL}${endpoint}`, fetchOptions);
     } else {
-      // Si el refresh falla (ej: el refresh token también expiró o el usuario fue desactivado)
-      // Aquí podrías redirigir al login usando window.location o un manejador de estado global
-     if (typeof window !== "undefined") {
+      // Refresh falló — sesión terminada definitivamente
+      if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("SESSION_EXPIRED"));
       }
       throw new Error("SESSION_EXPIRED");
     }
   }
 
-  // Manejo de otros errores (404, 500, etc.)
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.message || "Error en la petición a la API");
@@ -102,134 +159,122 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
   return response.json();
 }
 
+// ─────────────────────────────────────────────
+// getCurrentUser
+// Lee el usuario guardado en localStorage.
+// Devuelve null si no hay sesión activa.
+// Usado por el navbar para obtener permisos
+// sin hacer fetch al servidor
+// ─────────────────────────────────────────────
+export function getCurrentUser(): StoredUser | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem("prometeo_user");
+    return raw ? (JSON.parse(raw) as StoredUser) : null;
+  } catch {
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────
+// getMe — refresca los datos del usuario
+// Llama a GET /api/auth/me para obtener los
+// permisos actuales del rol desde BD y actualiza
+// localStorage. Útil si el admin cambió permisos
+// ─────────────────────────────────────────────
+export async function getMe(): Promise<StoredUser> {
+  const data = await fetchWithAuth("/auth/me");
+  // Actualizamos localStorage con datos frescos
+  if (typeof window !== "undefined") {
+    localStorage.setItem("prometeo_user", JSON.stringify(data));
+  }
+  return data;
+}
+
+// ════════════════════════════════════════
+// USUARIOS
+// ════════════════════════════════════════
 export async function getUsers() {
   return await fetchWithAuth("/users");
 }
-
 export async function createUser(userData: any) {
   return await fetchWithAuth("/users", {
     method: "POST",
     body: JSON.stringify(userData),
   });
 }
-
 export async function updateUser(id: number, userData: any) {
   return await fetchWithAuth(`/users/${id}`, {
     method: "PUT",
     body: JSON.stringify(userData),
   });
 }
-
 export async function toggleUserState(id: number) {
-  return await fetchWithAuth(`/users/${id}/state`, {
-    method: "PATCH",
-  });
+  return await fetchWithAuth(`/users/${id}/state`, { method: "PATCH" });
 }
 
-// --- GESTIÓN DE ROLES ---
+// ════════════════════════════════════════
+// ROLES
+// ════════════════════════════════════════
 export async function getRoles() {
   return await fetchWithAuth("/roles");
 }
-
 export async function createRole(roleData: any) {
   return await fetchWithAuth("/roles", {
     method: "POST",
     body: JSON.stringify(roleData),
   });
 }
-
 export async function updateRole(id: number, roleData: any) {
   return await fetchWithAuth(`/roles/${id}`, {
     method: "PUT",
     body: JSON.stringify(roleData),
   });
 }
-
-// Tendrás que crear este endpoint en tu backend de roles
 export async function toggleRoleState(id: number) {
-  return await fetchWithAuth(`/roles/${id}/state`, {
-    method: "PATCH",
-  });
+  return await fetchWithAuth(`/roles/${id}/state`, { method: "PATCH" });
 }
 
-// --- RADICACIÓN ---entrada
+// ════════════════════════════════════════
+// RADICACIÓN
+// ════════════════════════════════════════
 export async function createEntryRadication(data: any) {
   return await fetchWithAuth("/radication/entry", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
-// --- RADICACIÓN ---salida
 export async function createOutputRadication(data: any) {
   return await fetchWithAuth("/radication/output", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
-// --- RADICACIÓN ---interno
 export async function createInternalRadication(data: any) {
   return await fetchWithAuth("/radication/internal", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
-  
-// Stiker
 export async function getInboundRadications() {
   const data = await fetchWithAuth("/radication/inbound");
-
   return data.map((r: any) => ({
     radication_number: r.radication_number,
     created_at: r.created_at,
     subject: r.subject || r.asunto,
     status: r.status || r.estado || "pending",
-    remitente: r.remitente || r.sender || "—"
+    remitente: r.remitente || r.sender || "—",
   }));
 }
-
-// Función para descargar imágenes protegidas
 export async function getPrivateSticker(filename: string) {
   const response = await fetch(`${API_URL}/radication/sticker/${filename}`, {
     method: "GET",
-    credentials: "include", // ¡Aquí está la magia que envía las cookies!
+    credentials: "include",
   });
-
-  if (!response.ok) {
-    throw new Error("No se pudo cargar el sticker protegido");
-  }
-
-  // Convertimos la respuesta cruda en un objeto Blob (archivo binario)
+  if (!response.ok) throw new Error("No se pudo cargar el sticker protegido");
   const blob = await response.blob();
-  // Creamos una URL temporal en el navegador para esa imagen
   return URL.createObjectURL(blob);
 }
-
-//=========================
-//Download PDF
-//=========================
-export async function downloadRadicationPDF(radicationNumber: string): Promise<void> {
-  const response = await fetch(
-    `${API_URL}/radication/pdf/${encodeURIComponent(radicationNumber)}`,
-    { method: "GET", credentials: "include" }
-  );
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.message || "Error al generar el PDF");
-  }
-
-  // Crear blob y disparar descarga en el navegador
-  const blob = await response.blob();
-  const url  = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href     = url;
-  link.download = `Radicado_${radicationNumber}.pdf`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
-// Agrega en services/api.tsx — versión que retorna URL para preview
 export async function getRadicationPDFUrl(radicationNumber: string): Promise<string> {
   const response = await fetch(
     `${API_URL}/radication/pdf/${encodeURIComponent(radicationNumber)}`,
@@ -242,20 +287,14 @@ export async function getRadicationPDFUrl(radicationNumber: string): Promise<str
   const blob = await response.blob();
   return URL.createObjectURL(blob);
 }
-//====================
-//cambio de passsword
-//====================
-export function getCurrentUser() {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem("prometeo_user");
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
 
-export async function changePassword(currentPassword: string, newPassword: string) {
+// ════════════════════════════════════════
+// CONTRASEÑA
+// ════════════════════════════════════════
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string
+) {
   return await fetchWithAuth("/users/me/password", {
     method: "PATCH",
     body: JSON.stringify({ currentPassword, newPassword }),
