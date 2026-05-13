@@ -46,7 +46,8 @@
   gap: 0.7rem;
   font-size: 0.875rem;
   font-weight: 500;
-  white-space: nowrap; /* evita wrap del texto al animar */
+  white-space: nowrap;
+  width: 100%;           /* ← ocupa todo el ancho disponible */
 }
 
 .navLabel {
@@ -76,6 +77,7 @@
   justify-content: center;
   border-radius: 10px;
   transition: all 0.2s ease;
+  flex-shrink: 0;        /* ← evita que se comprima */
 }
 
 .navLink {
@@ -85,7 +87,9 @@
   text-decoration: none;
   border: 1px solid transparent;
   transition: color 0.2s, background 0.2s, border-color 0.2s;
-  display: block;
+  display: flex;         /* ← cambia block por flex */
+  align-items: center;   /* ← centra verticalmente */
+  width: 100%;           /* ← ocupa todo el ancho */
 }
 
 .navLink:hover {
@@ -99,12 +103,14 @@
 
 .navLinkActive .iconBox {
   background: rgba(229, 57, 53, 0.15);
+  border: 1px solid rgba(229, 57, 53, 0.25);
+  /* el background va SOLO en el iconBox, no en todo el navLink */
 }
 
 .navLinkActive {
   color: #ffffff;
-  background: rgba(229, 57, 53, 0.12);   /* ← UN solo background */
-  border-color: rgba(229, 57, 53, 0.25);
+  background: transparent;   /* ← quita el background del link */
+  border-color: transparent;
 }
 
 .navLinkActive .icon {

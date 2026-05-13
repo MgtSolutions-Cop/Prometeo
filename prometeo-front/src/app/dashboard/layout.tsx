@@ -79,7 +79,7 @@ const navItems = [
   {
     href: "/dashboard/create.rol",
     icon: FaRegAddressCard,
-    label: "Crear Roles",
+    label: "Gestión de Roles",
     // Solo quien puede asignar roles ve esta sección
     permission: "can_assign_roles",
     sub: null,
@@ -87,7 +87,7 @@ const navItems = [
   {
     href: "/dashboard/create.dependencies",
     icon: FaBuilding,
-    label: "Crear Dependencias",
+    label: "Gestión de Dependencias",
     // Misma restricción que crear usuarios
     permission: "can_create_users",
     sub: null,
