@@ -1,36 +1,68 @@
 import { pool } from "../config/db.js";
 
 /**
- * Middleware para verificar si el rol del usuario tiene un permiso específico.
- * @param {string} requiredPermission - El nombre de la columna booleana en la tabla 'roles'.
+ * Middleware para verificar permisos con jerarquía:
+ *
+ *   1. Override del usuario (tabla user_permissions)
+ *      → si existe una fila, usa ese valor (true o false)
+ *   2. Permiso del rol (tabla roles)
+ *      → si no hay fila en user_permissions, hereda del rol
+ *
+ * Así el admin puede suspender o conceder funcionalidades
+ * a un usuario individual sin tocar el rol global,
+ * y agregar nuevos permisos no requiere migrar la BD.
+ *
+ * @param {string} requiredPermission - ej: 'can_radicate_documents'
  */
 export const requirePermission = (requiredPermission) => {
   return async (req, res, next) => {
     try {
-      // 1. Extraemos el role_id que dejó el authMiddleware
+      const userId = req.user?.user_id;
       const roleId = req.user?.role_id;
 
-      if (!roleId) {
-        return res.status(403).json({ message: "Acceso denegado. No se detectó un rol." });
-      }
-
-      // 2. Consultamos la base de datos para obtener los permisos actuales del rol
-      const result = await pool.query("SELECT * FROM roles WHERE role_id = $1", [roleId]);
-
-      if (result.rows.length === 0) {
-        return res.status(403).json({ message: "Rol no encontrado en el sistema." });
-      }
-
-      const role = result.rows[0];
-
-      // 3. Verificamos si la columna del permiso solicitado es 'true'
-      if (role[requiredPermission] !== true) {
-        return res.status(403).json({ 
-          message: `Acceso denegado. Se requiere el permiso: ${requiredPermission}` 
+      if (!userId || !roleId) {
+        return res.status(403).json({
+          message: "Acceso denegado. No se detectó usuario o rol.",
         });
       }
 
-      // 4. Si tiene el permiso, dejamos que la petición continúe hacia el controlador
+      // ── 1. Buscar override del usuario ────────────────────────────
+      const overrideResult = await pool.query(
+        `SELECT granted
+         FROM user_permissions
+         WHERE user_id = $1 AND permission = $2`,
+        [userId, requiredPermission]
+      );
+
+      // Si existe un override → úsalo directamente
+      if (overrideResult.rows.length > 0) {
+        const granted = overrideResult.rows[0].granted;
+        if (!granted) {
+          return res.status(403).json({
+            message: `Acceso denegado. El permiso "${requiredPermission}" está suspendido para este usuario.`,
+          });
+        }
+        return next();
+      }
+
+      // ── 2. Sin override → verificar permiso del rol ───────────────
+      const roleResult = await pool.query(
+        `SELECT ${requiredPermission} AS granted
+         FROM roles
+         WHERE role_id = $1`,
+        [roleId]
+      );
+
+      if (roleResult.rows.length === 0) {
+        return res.status(403).json({ message: "Rol no encontrado." });
+      }
+
+      if (!roleResult.rows[0].granted) {
+        return res.status(403).json({
+          message: `Acceso denegado. Se requiere el permiso: ${requiredPermission}`,
+        });
+      }
+
       next();
     } catch (error) {
       console.error("Error en permissionMiddleware:", error);
