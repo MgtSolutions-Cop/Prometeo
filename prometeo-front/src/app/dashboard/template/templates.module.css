@@ -1,0 +1,141 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 100px);
+  padding: 1rem;
+}
+
+.header {
+  margin-bottom: 1rem;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #d4d4d4;
+  margin: 0;
+}
+
+.header p {
+  color: #b4b4b4;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.splitView {
+  display: flex;
+  flex: 1;
+  gap: 1.5rem;
+  overflow: hidden;
+}
+
+.leftPanel {
+  width: 33.33%;
+  background-color: #1e1d1d;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #780000;
+  overflow-y: auto;
+}
+
+.rightPanel {
+  width: 66.66%;
+  background-color: #161617;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #780000;
+  overflow: hidden;
+}
+
+.sectionTitle {
+  font-size: 0.875rem;
+  font-weight: bold;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #242526;
+  padding-bottom: 0.5rem;
+}
+
+.formGroup {
+  margin-bottom: 1rem;
+}
+
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fdfeff;
+  margin-bottom: 0.25rem;
+}
+
+.input, .textarea {
+  width: 100%;
+  border: 1px solid #af0404;
+  border-radius: 6px;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus, .textarea:focus {
+  border-color: #ab0e0e;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+/* Estilo general del contenedor del input */
+.fileInput {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  width: 100%;
+  cursor: pointer; /* Cambia el cursor a la "manito" (pointer) */
+}
+
+/* Estilo específico para el botón interno de "Elegir archivo" */
+.fileInput::file-selector-button {
+  cursor: pointer; /* Asegura que la manito también salga en el botón */
+  background-color: transparent;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border: 2px dashed #780000; /* Borde punteado que se ve muy bien para subir archivos (puedes cambiar 'dashed' por 'solid') */
+  border-radius: 15px; /* Los bordes redondeados que pediste */
+  margin-right: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease; /* Hace que el hover sea suave */
+}
+
+/* Efecto cuando pasas el mouse por encima (Hover) */
+.fileInput::file-selector-button:hover {
+  background-color: #780000; /* Se rellena de tu color oscuro */
+  color: white; /* El texto pasa a blanco */
+  border-style: solid; /* El borde punteado se vuelve sólido */
+}
+
+/* ... el resto de tu CSS anterior ... */
+
+/* Personalización del Scrollbar (Slider) para el panel izquierdo */
+.leftPanel::-webkit-scrollbar {
+  width: 8px; /* Ancho de la barra vertical */
+}
+
+.leftPanel::-webkit-scrollbar-track {
+  background: #161617; /* Color del fondo de la pista */
+  border-radius: 4px;
+}
+
+.leftPanel::-webkit-scrollbar-thumb {
+  background-color: #780000; /* Color rojo de Prometeo */
+  border-radius: 4px;
+  border: 1px solid #1e1d1d; /* Borde sutil para que resalte */
+}
+
+.leftPanel::-webkit-scrollbar-thumb:hover {
+  background-color: #af0404; /* Rojo más brillante al pasar el mouse */
+}

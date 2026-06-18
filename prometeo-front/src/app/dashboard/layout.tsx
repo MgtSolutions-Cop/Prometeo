@@ -311,6 +311,6 @@ export default function DashboardLayout({
           <div className={styles.pageContent}>{children}</div>
         </main>
       </div>
-    </SessionProvider>
+|    </SessionProvider>
   );
 }
