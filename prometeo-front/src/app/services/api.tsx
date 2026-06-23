@@ -236,8 +236,9 @@ export async function toggleRoleState(id: number) {
 }
 
 // ════════════════════════════════════════
-// RADICACIÓN
+// RADICACIÓN — 
 // ════════════════════════════════════════
+
 export async function createEntryRadication(data: any) {
   return await fetchWithAuth("/radication/entry", {
     method: "POST",
@@ -256,18 +257,38 @@ export async function createInternalRadication(data: any) {
     body: JSON.stringify(data),
   });
 }
-export async function getInboundRadications() {
-  const data = await fetchWithAuth("/radication/inbound");
+
+// Trae TODOS los radicados (entrada, salida, interno) incluyendo archivados
+export async function getAllRadications() {
+  const data = await fetchWithAuth("/radication/entry/inbound");
   return data.map((r: any) => ({
     radication_number: r.radication_number,
-    created_at: r.created_at,
-    subject: r.subject || r.asunto,
-    status: r.status || r.estado || "pending",
-    remitente: r.remitente || r.sender || "—",
+    created_at:        r.created_at,
+    subject:           r.subject || r.asunto,
+    status:            r.status  || r.estado || "pending",
+    remitente:         r.remitente || r.sender || "—",
+    archived:          r.archived ?? false,
+    fecha_documento:   r.fecha_documento || "",
+    observaciones:     r.observaciones   || "",
   }));
 }
+
+// Mantener getInboundRadications para compatibilidad con header/notificaciones
+export async function getInboundRadications() {
+  const data = await fetchWithAuth("/radication/entry/inbound");
+  return data
+    .filter((r: any) => !r.archived)
+    .map((r: any) => ({
+      radication_number: r.radication_number,
+      created_at:        r.created_at,
+      subject:           r.subject || r.asunto,
+      status:            r.status  || r.estado || "pending",
+      remitente:         r.remitente || r.sender || "—",
+    }));
+}
+
 export async function getPrivateSticker(filename: string) {
-  const response = await fetch(`${API_URL}/radication/sticker/${filename}`, {
+  const response = await fetch(`${API_URL}/radication/entry/sticker/${filename}`, {
     method: "GET",
     credentials: "include",
   });
@@ -275,9 +296,10 @@ export async function getPrivateSticker(filename: string) {
   const blob = await response.blob();
   return URL.createObjectURL(blob);
 }
+
 export async function getRadicationPDFUrl(radicationNumber: string): Promise<string> {
   const response = await fetch(
-    `${API_URL}/radication/pdf/${encodeURIComponent(radicationNumber)}`,
+    `${API_URL}/radication/entry/pdf/${encodeURIComponent(radicationNumber)}`,
     { method: "GET", credentials: "include" }
   );
   if (!response.ok) {
@@ -288,6 +310,20 @@ export async function getRadicationPDFUrl(radicationNumber: string): Promise<str
   return URL.createObjectURL(blob);
 }
 
+// ── NUEVO: Archivar radicado ──
+export async function archiveRadication(radicationNumber: string) {
+  return await fetchWithAuth(`/radication/entry/${encodeURIComponent(radicationNumber)}/archive`, {
+    method: "PATCH",
+  });
+}
+
+// ── NUEVO: Actualizar radicado ──
+export async function updateRadication(radicationNumber: string, data: any) {
+  return await fetchWithAuth(`/radication/entry/${encodeURIComponent(radicationNumber)}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
 // ════════════════════════════════════════
 // CONTRASEÑA
 // ════════════════════════════════════════
