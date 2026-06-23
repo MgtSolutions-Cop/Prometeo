@@ -4,7 +4,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "prometeo-black": "#1A1A1A",
+        "prometeo-black": "#0A0A0A",
         "prometeo-white": "#FFFFFF",
         "prometeo-red": "#E53935",
         "prometeo-redDark": "#8B0000",
