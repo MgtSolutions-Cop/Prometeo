@@ -1,21 +1,23 @@
-import express, { Router } from "express"
-import{
-createUser,
-getUsers,
-getUserId,
-toggleUserState,
-updateUser
-} from "../users/user.controller.js"
+import { Router } from "express";
+import {
+  createUser,
+  getUsers,
+  getUserId,
+  toggleUserState,
+  updateUser,
+  changeMyPassword,        // ← agregar
+} from "./user.controller.js";
+import { authMiddleware } from "../../middlewares/authMiddleware.js";
+import { requirePermission } from "../../middlewares/permissionMiddleware.js";
 
-import {authMiddleware} from "../../middlewares/authMiddleware.js"
 const router = Router();
+router.use(authMiddleware);
 
- router.use(authMiddleware);
+router.post("/",        requirePermission('can_create_users'), createUser);
+router.get("/",         requirePermission('can_create_users'), getUsers);
+router.get("/:id",      requirePermission('can_create_users'), getUserId);
+router.patch("/:id/state", requirePermission('can_create_users'), toggleUserState);
+router.put("/:id",      requirePermission('can_create_users'), updateUser);
+router.patch("/me/password", changeMyPassword);  // ← sin requirePermission, cualquier usuario logueado
 
- router.post("/",createUser);
- router.get("/",getUsers);
- router.get("/:id",getUserId);
- router.patch("/:id/state",toggleUserState);
- router.put("/:id",updateUser)
-
- export default router;
+export default router;

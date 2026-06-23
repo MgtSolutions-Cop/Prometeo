@@ -9,6 +9,40 @@
     rgba(229, 57, 53, 0.25),
     #0a0a0a 60%
   );
+  position: relative;
+}
+
+/* ===== BOTÓN VOLVER ===== */
+.backBtn {
+  position: absolute;
+  top: 28px;
+  left: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+  letter-spacing: 0.02em;
+}
+.backBtn:hover {
+  background: rgba(229, 57, 53, 0.1);
+  border-color: rgba(229, 57, 53, 0.4);
+  color: #E53935;
+  transform: translateX(-3px);
+}
+.backBtn svg {
+  transition: transform 0.25s ease;
+}
+.backBtn:hover svg {
+  transform: translateX(-2px);
 }
 
 /* ===== CARD PRINCIPAL ===== */
@@ -20,7 +54,6 @@
   background: #000;
   border-radius: 20px;
   overflow: hidden;
-
   border: 2px solid rgba(229, 57, 53, 0.5);
   box-shadow:
     0 0 25px rgba(229, 57, 53, 0.4),
@@ -38,19 +71,16 @@
   );
   clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
   padding: 60px 40px;
-
   display: flex;
   flex-direction: column;
   justify-content: center;
   color: white;
 }
-
 .leftPanel h2 {
   font-size: 2.2rem;
   font-weight: 800;
   margin-bottom: 12px;
 }
-
 .leftPanel p {
   font-size: 1rem;
   opacity: 0.9;
@@ -79,7 +109,6 @@
 .inputGroup {
   margin-bottom: 22px;
 }
-
 .inputGroup input {
   width: 100%;
   background: transparent;
@@ -91,16 +120,14 @@
   outline: none;
   transition: all 0.3s ease;
 }
-
 .inputGroup input::placeholder {
   color: rgba(255, 255, 255, 0.5);
 }
-
 .inputGroup input:focus {
   border-bottom-color: var(--prometeo-red);
 }
 
-/* ===== BOTÓN ===== */
+/* ===== BOTÓN INGRESAR ===== */
 .loginButton {
   margin-top: 25px;
   padding: 12px;
@@ -110,27 +137,22 @@
   font-size: 1rem;
   cursor: pointer;
   color: white;
-
   background: linear-gradient(
     90deg,
     var(--prometeo-red),
     var(--prometeo-red-dark)
   );
-
   box-shadow:
     0 0 15px rgba(229, 57, 53, 0.6),
     0 0 30px rgba(229, 57, 53, 0.4);
-
   transition: all 0.3s ease;
 }
-
 .loginButton:hover {
   transform: translateY(-2px);
   box-shadow:
     0 0 25px rgba(229, 57, 53, 0.8),
     0 0 40px rgba(229, 57, 53, 0.5);
 }
-
 .loginButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -144,7 +166,6 @@
   text-align: center;
   cursor: pointer;
 }
-
 .footerText:hover {
   color: var(--prometeo-pink);
 }
@@ -156,14 +177,16 @@
     width: 95%;
     height: auto;
   }
-
   .leftPanel {
     width: 100%;
     clip-path: none;
     text-align: center;
   }
-
   .rightPanel {
     width: 100%;
+  }
+  .backBtn {
+    top: 16px;
+    left: 16px;
   }
 }

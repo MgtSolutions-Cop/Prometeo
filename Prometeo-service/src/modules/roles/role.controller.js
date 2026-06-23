@@ -40,4 +40,13 @@ export const updateRole = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+// En role.controller.js
+export const toggleRoleState = async (req, res) => {
+  try {
+    const toggled = await roleService.toggleRoleState(req.params.id);
+    res.json(toggled);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
 

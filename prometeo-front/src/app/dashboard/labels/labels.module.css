@@ -1,0 +1,227 @@
+/* --- CONTENEDOR PRINCIPAL --- */
+.wrap {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: system-ui, -apple-system, sans-serif;
+  background-color: #000; 
+  min-height: 100vh;
+  color: #bbb; 
+}
+
+/* --- ENCABEZADO --- */
+.heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #fff; 
+  margin: 0 0 0.25rem 0;
+}
+
+.sub {
+  font-size: 0.875rem;
+  color: #888; 
+  margin: 0;
+}
+
+/* --- TARJETA Y HERRAMIENTAS --- */
+.card {
+  background: #111; 
+  border: 1px solid #222; 
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.toolbar {
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #222;
+}
+
+.searchWrap {
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+}
+
+.search {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 1px solid #333; 
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  outline: none;
+  background-color: #111; 
+  color: #bbb;
+  transition: border-color 0.2s;
+}
+
+.search:focus {
+  border-color: #b51e2a; 
+  box-shadow: 0 0 0 1px #b51e2a;
+}
+
+/* --- TABLA --- */
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.thead {
+  background-color: #1a1a1a; 
+}
+
+.th {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #999; 
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #222;
+}
+
+.thRight {
+  text-align: right;
+}
+
+.tr {
+  border-bottom: 1px solid #222;
+  transition: background-color 0.2s;
+}
+
+.tr:hover {
+  background-color: #161616; 
+}
+
+.td {
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  color: #bbb;
+}
+
+.tdRight {
+  text-align: right;
+}
+
+/* --- ESTILOS ESPECÍFICOS DE LA BANDEJA --- */
+
+/* Badge para resaltar el número de radicado */
+.radBadge {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #fff;
+  background-color: #222;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  border: 1px solid #333;
+}
+
+/* Truncar textos muy largos (como el asunto) */
+.truncate {
+  display: inline-block;
+  max-width: 200px; /* Ajusta según lo ancho que quieras la columna */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+
+/* --- BADGES DE ESTADOS (TRAZABILIDAD) --- */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+}
+
+/* 1. Radicado (Rojo Prometeo) */
+.statusPending {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* 2. En Oficina (Naranja / Espera) */
+.statusAssigned {
+  color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+/* 3. En Trámite (Azul / Activo) */
+.statusProgress {
+  color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+/* 4. Finalizado (Verde / Éxito) */
+.statusResolved {
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+/* Botón para ver el sticker */
+.actionBtn {
+  background-color: #2a2a2a;
+  color: #ddd;
+  border: 1px solid #333;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.actionBtn:hover {
+  background-color: #b51e2a; /* Brilla en rojo al pasar el mouse */
+  color: #fff;
+  border-color: #b51e2a;
+}
+
+.empty {
+  padding: 3rem;
+  text-align: center;
+  color: #666;
+}
+
+/* --- MODAL DEL STICKER --- */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85); /* Fondo muy oscuro para resaltar la imagen */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px); /* Efecto cristal moderno */
+}
+
+.modalContent {
+  background-color: #111; 
+  padding: 2rem;
+  border-radius: 0.75rem;
+  width: 100%;
+  max-width: 480px;
+  border: 1px solid #333;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}

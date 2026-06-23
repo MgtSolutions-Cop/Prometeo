@@ -1,106 +1,255 @@
 /* src/app/dashboard/Dashboard.module.css */
 .container {
-  background-color: #1A1A1A; /* prometeoBlack */
-  color: #FFFFFF; /* prometeoWhite */
+  background-color: #0a0a0a;
+  color: #ffffff;
   min-height: 100vh;
   display: flex;
+  position: relative;
 }
 
-/* ==== SIDEBAR ==== */
+/* ── SIDEBAR (fijo, colapsable) ── */
 .sidebar {
-  width: 16rem; /* 64 Tailwind equiv */
-  background-color: #8B0000; /* prometeoRedDark */
-  padding: 1.5rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 4rem; /* colapsado: solo iconos */
+  background-color: #0f0f0f;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 1.5rem 0.65rem 1.25rem;
   display: flex;
   flex-direction: column;
-  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.4);
-  transition: width 0.3s ease;
+  z-index: 50;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5),
+              1px 0 0 rgba(229, 57, 53, 0.1);
+  overflow: hidden;
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sidebar:hover {
-  width: 17rem;
+.sidebarOpen {
+  width: 15rem; /* expandido: iconos + texto */
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 2.5rem;
-}
-
-/* ==== NAVEGACIÓN ==== */
+/* ── NAV ── */
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 2px;
   flex: 1;
+  margin-top: 1rem; /* espacio bajo el logo en el sidebar */
 }
 
-.navLink {
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  color: #ffffff; /*color iconos y texto inicial*/
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
 
 .navItem {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  transition: transform 0.3s ease;
+  gap: 0.7rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  width: 100%;           /* ← ocupa todo el ancho disponible */
 }
 
-/* Tamaño y animación de íconos */
+.navLabel {
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+}
+
+.sidebarOpen .navLabel {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .icon {
-  font-size: 1.6rem; /* aumentado */
-  transition: transform 0.3s ease, color 0.3s ease;
+  font-size: 1rem;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.35);
+  transition: color 0.2s, transform 0.25s ease;
 }
 
-/* Hover con animación */
-.navLink:hover {
-  background-color: #750000; /* prometeoRed */
-  transform: translateX(10px);
+.iconBox {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;        /* ← evita que se comprima */
 }
 
-.navLink:hover .icon {
-  transform: scale(1.4) rotate(8deg);
-  color: white; /* color icono animacion */
-}
-
-/* ==== LOGOUT ==== */
-.logout {
-  margin-top: auto;
-  text-align: center;
-  font-weight: 600;
-  background-color: #F06292; /* prometeoPink */
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  color: #000;
+.navLink {
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.45);
   text-decoration: none;
-  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+  display: flex;         /* ← cambia block por flex */
+  align-items: center;   /* ← centra verticalmente */
+  width: 100%;           /* ← ocupa todo el ancho */
+}
+
+.navLink:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.navLinkActive .icon {
+  color: #E53935;
+}
+
+.navLinkActive .iconBox {
+  background: rgba(229, 57, 53, 0.15);
+  border: 1px solid rgba(229, 57, 53, 0.25);
+  /* el background va SOLO en el iconBox, no en todo el navLink */
+}
+
+.navLinkActive {
+  color: #ffffff;
+  background: transparent;   /* ← quita el background del link */
+  border-color: transparent;
+}
+
+.navLinkActive .icon {
+  color: #E53935;
+}
+
+.navLink:hover .iconBox {
+  background: rgba(255, 255, 255, 0.06);
+}
+/* ── DIVIDER ── */
+.navDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 8px 0;
+}
+
+/* ── LOGOUT ── */
+.logout {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .logout:hover {
-  background-color: #E53935;
-  color: #fff;
-  transform: scale(1.05);
+  color: #E53935;
+  border-color: rgba(229, 57, 53, 0.3);
+  background: rgba(229, 57, 53, 0.07);
 }
 
-/* Animación especial del ícono de logout */
-.logout:hover .icon {
-  transform: scale(1.5) rotate(-10deg);
-  color: #fff;
+.logoutIcon {
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: transform 0.25s ease, color 0.2s;
 }
 
-/* ==== CONTENIDO PRINCIPAL ==== */
+.logout:hover .logoutIcon {
+  transform: translateX(-3px);
+  color: #E53935;
+}
+
+.logoutLabel {
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.sidebarOpen .logoutLabel {
+  opacity: 1;
+}
+
+/* ── MAIN (margen izquierdo = ancho sidebar colapsado) ── */
 .main {
   flex: 1;
-  padding: 2rem;
-  background-color: #2E2E2E; /* prometeoGray */
+  margin-left: 4rem; /* igual al sidebar colapsado */
+  padding: 1.25rem 2rem 2rem;
+  background-color: #111111;
   overflow-y: auto;
+  min-height: 100vh;
+  transition: margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+.mainShifted {
+  margin-left: 15rem; /* igual al sidebar expandido */
+}
+
 .pageContent {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
+  padding-top: 1rem;
+}
+/* ── SUBMENU ── */
+.navGroup {
+  position: relative;
+}
+
+.chevron {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.chevronOpen {
+  transform: rotate(90deg);
+  color: #E53935;
+}
+
+.subMenu {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 0 4px 2.25rem;
+  animation: slideDown 0.18s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.subLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.4rem 0.65rem;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+  transition: color 0.2s, background 0.2s;
+  white-space: nowrap;
+}
+
+.subLink:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.subLinkActive {
+  color: #E53935;
+}
+
+.subDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  flex-shrink: 0;
+}
+
+.subLinkActive .subDot {
+  background: #E53935;
 }

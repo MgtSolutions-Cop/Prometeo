@@ -1,0 +1,4 @@
+allowBuilds:
+  bcrypt: false
+  canvas: false
+  sharp: false
