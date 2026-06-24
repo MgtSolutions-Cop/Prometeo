@@ -4,8 +4,7 @@ import {
   createOutputRadication,
   createInternalRadication,
   getInboundListController,
-  getPrivateStickerController,
-  downloadRadicationPDFController
+  getPrivateStickerController
 } from "./radication.controller.js";
 import { authMiddleware } from "../../../middlewares/authMiddleware.js";
 import { requirePermission } from "../../../middlewares/permissionMiddleware.js";
@@ -33,6 +32,5 @@ router.get("/inbound", getInboundListController);
 
 // Servir sticker protegido (Cualquier usuario logueado puede verlo)
 router.get("/sticker/:filename", getPrivateStickerController);
-// Download PDF
-router.get("/pdf/:radicationNumber", downloadRadicationPDFController);
+
 export default router;

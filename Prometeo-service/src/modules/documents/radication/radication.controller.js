@@ -6,7 +6,7 @@ import {
 
 import path from "path";
 import fs from "fs";
-import { generateRadicationPDF } from "./radication.service.js";
+
 
 // =============================
 // CREAR RADICADO DE ENTRADA
@@ -123,30 +123,6 @@ export async function getPrivateStickerController(req, res) {
   }
 }
 
-// =============================
-// downloadPDF
-// =============================
-export async function downloadRadicationPDFController(req, res) {
-  try {
-    const { radicationNumber } = req.params;
-    const entityId = req.user.entity_id;
-
-    const pdfBuffer = await generateRadicationPDF(radicationNumber, entityId);
-
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="Radicado_${radicationNumber}.pdf"`
-    );
-    res.setHeader("Content-Length", pdfBuffer.length);
-
-    return res.end(pdfBuffer);
-
-  } catch (err) {
-    console.error("Error generando PDF:", err);
-    return res.status(500).json({ message: err.message || "Error generando PDF" });
-  }
-}
 
 // =============================
 // EXPORT PARA ROUTES

@@ -244,18 +244,21 @@ export async function createEntryRadication(data: any) {
     body: JSON.stringify(data),
   });
 }
+
 export async function createOutputRadication(data: any) {
   return await fetchWithAuth("/radication/output", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
+
 export async function createInternalRadication(data: any) {
   return await fetchWithAuth("/radication/internal", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
+
 export async function getInboundRadications() {
   const data = await fetchWithAuth("/radication/inbound");
   return data.map((r: any) => ({
@@ -266,15 +269,44 @@ export async function getInboundRadications() {
     remitente: r.remitente || r.sender || "—",
   }));
 }
-export async function getPrivateSticker(filename: string) {
-  const response = await fetch(`${API_URL}/radication/sticker/${filename}`, {
+
+// ─────────────────────────────────────────────
+// VERIFICACIÓN PÚBLICA (Para el QR del Rótulo)
+// No usa fetchWithAuth porque el ciudadano no
+// tiene sesión iniciada.
+// ─────────────────────────────────────────────
+export async function verifyRadicationPublic(numero: string) {
+  const response = await fetch(`${API_URL}/radication/verificar/${encodeURIComponent(numero)}`, {
     method: "GET",
-    credentials: "include",
+    headers: { "Content-Type": "application/json" }
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Radicado inválido o no encontrado");
+  }
+  
+  return response.json();
+}
+
+// ════════════════════════════════════════
+// RÓTULOS / STICKERS (Nuevo Módulo)
+// ════════════════════════════════════════
+export async function getPrivateSticker(filename: string) {
+  // Actualizado para apuntar a la nueva ruta /rotulos/ver/
+  const response = await fetch(`${API_URL}/rotulos/ver/${filename}`, {
+    method: "GET",
+    credentials: "include", // Require auth
   });
   if (!response.ok) throw new Error("No se pudo cargar el sticker protegido");
   const blob = await response.blob();
   return URL.createObjectURL(blob);
 }
+
+// ==========================================
+// NOTA: Esta función se deprecará pronto ya
+// que estamos usando @react-pdf/renderer
+// ==========================================
 export async function getRadicationPDFUrl(radicationNumber: string): Promise<string> {
   const response = await fetch(
     `${API_URL}/radication/pdf/${encodeURIComponent(radicationNumber)}`,
