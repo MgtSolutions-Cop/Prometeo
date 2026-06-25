@@ -8,8 +8,7 @@ export const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
 // ─────────────────────────────────────────────
-// TIPOS — definen la forma del usuario que
-// guardamos en localStorage y usamos en el app
+// TIPOS
 // ─────────────────────────────────────────────
 export interface UserPermissions {
   can_create_users: boolean;
@@ -30,17 +29,13 @@ export interface StoredUser {
 
 // ─────────────────────────────────────────────
 // loginUser
-// Envía credenciales, recibe cookies httpOnly
-// y guarda el objeto user en localStorage para
-// que el navbar y otros componentes lo lean
-// sin hacer peticiones extra al servidor
 // ─────────────────────────────────────────────
 export async function loginUser(email: string, password: string) {
   try {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include", // envía/recibe cookies
+      credentials: "include",
       body: JSON.stringify({ email, password }),
     });
 
@@ -51,13 +46,6 @@ export async function loginUser(email: string, password: string) {
 
     const data = await response.json();
 
-    // ─────────────────────────────────────────────
-    // Guardamos el usuario completo en localStorage.
-    // Incluye role_id y permissions para que el
-    // navbar pueda filtrar sin petición adicional.
-    // IMPORTANTE: nunca guardar tokens aquí,
-    // esos van solo en cookies httpOnly.
-    // ─────────────────────────────────────────────
     if (data.user && typeof window !== "undefined") {
       localStorage.setItem("prometeo_user", JSON.stringify(data.user));
     }
@@ -71,9 +59,6 @@ export async function loginUser(email: string, password: string) {
 
 // ─────────────────────────────────────────────
 // refreshAccessToken
-// Llama al endpoint /auth/refresh enviando
-// la cookie del refreshToken automáticamente.
-// Si falla significa que la sesión expiró
 // ─────────────────────────────────────────────
 async function refreshAccessToken() {
   try {
@@ -91,8 +76,6 @@ async function refreshAccessToken() {
 
 // ─────────────────────────────────────────────
 // logoutUser
-// Limpia cookies en el servidor y borra el
-// usuario de localStorage en el cliente
 // ─────────────────────────────────────────────
 export async function logoutUser() {
   try {
@@ -100,7 +83,6 @@ export async function logoutUser() {
       method: "POST",
       credentials: "include",
     });
-    // Limpiamos localStorage al cerrar sesión
     if (typeof window !== "undefined") {
       localStorage.removeItem("prometeo_user");
     }
@@ -114,10 +96,6 @@ export async function logoutUser() {
 
 // ─────────────────────────────────────────────
 // fetchWithAuth — wrapper universal
-// Toda petición autenticada pasa por aquí.
-// Si el servidor responde 401 (token expirado),
-// intenta refresh automático y reintenta.
-// Si el refresh falla, dispara SESSION_EXPIRED
 // ─────────────────────────────────────────────
 export async function fetchWithAuth(
   endpoint: string,
@@ -134,16 +112,13 @@ export async function fetchWithAuth(
 
   let response = await fetch(`${API_URL}${endpoint}`, fetchOptions);
 
-  // Token expirado — intentamos renovarlo
   if (response.status === 401) {
     console.log("Token expirado, intentando refrescar...");
     const tokenRefreshed = await refreshAccessToken();
 
     if (tokenRefreshed) {
-      // Reintentamos la petición original con el nuevo token
       response = await fetch(`${API_URL}${endpoint}`, fetchOptions);
     } else {
-      // Refresh falló — sesión terminada definitivamente
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("SESSION_EXPIRED"));
       }
@@ -161,10 +136,6 @@ export async function fetchWithAuth(
 
 // ─────────────────────────────────────────────
 // getCurrentUser
-// Lee el usuario guardado en localStorage.
-// Devuelve null si no hay sesión activa.
-// Usado por el navbar para obtener permisos
-// sin hacer fetch al servidor
 // ─────────────────────────────────────────────
 export function getCurrentUser(): StoredUser | null {
   if (typeof window === "undefined") return null;
@@ -177,14 +148,10 @@ export function getCurrentUser(): StoredUser | null {
 }
 
 // ─────────────────────────────────────────────
-// getMe — refresca los datos del usuario
-// Llama a GET /api/auth/me para obtener los
-// permisos actuales del rol desde BD y actualiza
-// localStorage. Útil si el admin cambió permisos
+// getMe
 // ─────────────────────────────────────────────
 export async function getMe(): Promise<StoredUser> {
   const data = await fetchWithAuth("/auth/me");
-  // Actualizamos localStorage con datos frescos
   if (typeof window !== "undefined") {
     localStorage.setItem("prometeo_user", JSON.stringify(data));
   }
@@ -236,9 +203,8 @@ export async function toggleRoleState(id: number) {
 }
 
 // ════════════════════════════════════════
-// RADICACIÓN — 
+// RADICACIÓN
 // ════════════════════════════════════════
-
 export async function createEntryRadication(data: any) {
   return await fetchWithAuth("/radication/entry", {
     method: "POST",
@@ -273,7 +239,7 @@ export async function getAllRadications() {
   }));
 }
 
-// Mantener getInboundRadications para compatibilidad con header/notificaciones
+// Mantener para compatibilidad con header/notificaciones
 export async function getInboundRadications() {
   const data = await fetchWithAuth("/radication/entry/inbound");
   return data
@@ -287,16 +253,23 @@ export async function getInboundRadications() {
     }));
 }
 
-export async function getPrivateSticker(filename: string) {
-  const response = await fetch(`${API_URL}/radication/entry/sticker/${filename}`, {
-    method: "GET",
-    credentials: "include",
-  });
-  if (!response.ok) throw new Error("No se pudo cargar el sticker protegido");
-  const blob = await response.blob();
-  return URL.createObjectURL(blob);
+// ── Archivar radicado ──
+export async function archiveRadication(radicationNumber: string) {
+  return await fetchWithAuth(
+    `/radication/entry/${encodeURIComponent(radicationNumber)}/archive`,
+    { method: "PATCH" }
+  );
 }
 
+// ── Actualizar radicado ──
+export async function updateRadication(radicationNumber: string, data: any) {
+  return await fetchWithAuth(
+    `/radication/entry/${encodeURIComponent(radicationNumber)}`,
+    { method: "PUT", body: JSON.stringify(data) }
+  );
+}
+
+// ── PDF radicado ──
 export async function getRadicationPDFUrl(radicationNumber: string): Promise<string> {
   const response = await fetch(
     `${API_URL}/radication/entry/pdf/${encodeURIComponent(radicationNumber)}`,
@@ -310,20 +283,35 @@ export async function getRadicationPDFUrl(radicationNumber: string): Promise<str
   return URL.createObjectURL(blob);
 }
 
-// ── NUEVO: Archivar radicado ──
-export async function archiveRadication(radicationNumber: string) {
-  return await fetchWithAuth(`/radication/entry/${encodeURIComponent(radicationNumber)}/archive`, {
-    method: "PATCH",
+// ════════════════════════════════════════
+// RÓTULOS — Módulo de Miguel
+// ════════════════════════════════════════
+
+// Sticker PNG privado — nueva ruta /rotulos/ver/
+export async function getPrivateSticker(filename: string) {
+  const response = await fetch(`${API_URL}/rotulos/ver/${filename}`, {
+    method: "GET",
+    credentials: "include",
   });
+  if (!response.ok) throw new Error("No se pudo cargar el sticker protegido");
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
 }
 
-// ── NUEVO: Actualizar radicado ──
-export async function updateRadication(radicationNumber: string, data: any) {
-  return await fetchWithAuth(`/radication/entry/${encodeURIComponent(radicationNumber)}`, {
-    method: "PUT",
-    body: JSON.stringify(data),
-  });
+// Verificación pública desde QR — sin autenticación
+// El ciudadano escanea el QR del rótulo y llega a /verificar/[numero]
+export async function verifyRadicationPublic(numero: string) {
+  const response = await fetch(
+    `${API_URL}/rotulos/verificar/${encodeURIComponent(numero)}`,
+    { method: "GET", headers: { "Content-Type": "application/json" } }
+  );
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Radicado inválido o no encontrado");
+  }
+  return response.json();
 }
+
 // ════════════════════════════════════════
 // CONTRASEÑA
 // ════════════════════════════════════════
