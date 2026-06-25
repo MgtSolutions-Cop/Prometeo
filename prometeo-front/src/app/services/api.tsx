@@ -269,6 +269,53 @@ export async function getInboundRadications() {
     remitente: r.remitente || r.sender || "—",
   }));
 }
+// ════════════════════════════════════════
+// Obtener TODOS los radicados (entrada, salida, internos)
+// Usa el mismo endpoint que "inbound" porque ya devuelve todos los tipos.
+// ════════════════════════════════════════
+export async function getAllRadications() {
+  // Reutilizamos el mismo endpoint que ya devuelve todos los radicados de la entidad.
+  // Nota: el backend lo llama "inbound" pero en realidad retorna todo.
+  const data = await fetchWithAuth("/radication/inbound");
+  return data.map((r: any) => ({
+    radication_number: r.radication_number,
+    created_at: r.created_at,
+    subject: r.subject || r.asunto,
+    status: r.status || r.estado || "pending",
+    remitente: r.remitente || r.sender || "—",
+    archived: r.archived ?? false,
+    fecha_documento: r.fecha_documento || "",
+    observaciones: r.observaciones || "",
+  }));
+}
+
+// ════════════════════════════════════════
+// Archivar un radicado
+// PATCH /radication/:radicationNumber/archive
+// ════════════════════════════════════════
+export async function archiveRadication(radicationNumber: string) {
+  return await fetchWithAuth(
+    `/radication/${encodeURIComponent(radicationNumber)}/archive`,
+    { method: "PATCH" }
+  );
+}
+
+// ════════════════════════════════════════
+// Actualizar un radicado
+// PUT /radication/:radicationNumber
+// ════════════════════════════════════════
+export async function updateRadication(
+  radicationNumber: string,
+  data: any
+) {
+  return await fetchWithAuth(
+    `/radication/${encodeURIComponent(radicationNumber)}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }
+  );
+}
 
 // ─────────────────────────────────────────────
 // VERIFICACIÓN PÚBLICA (Para el QR del Rótulo)

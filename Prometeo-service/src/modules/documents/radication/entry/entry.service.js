@@ -1,5 +1,7 @@
 import { pool } from "../../../../config/db.js";
-import { generateRadicationNumber, createStickerPNG } from "../shared/radication.utils.js";
+import { generateRadicationNumber } from "../shared/radication.utils.js";
+import { createStickerPNG } from "../../../rotulos/rotulos.service.js"; 
+
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
@@ -10,6 +12,7 @@ export async function createEntryRadication(payload, currentUser) {
     await client.query("BEGIN");
     const entityId = currentUser.entity_id;
 
+    // 1) Guardar documento
     const docResult = await client.query(
       `INSERT INTO documents
         (subject, content, created_by, dependency_id, entity_id, status, priority, due_date, trd_code, metadata, created_at)
@@ -30,8 +33,10 @@ export async function createEntryRadication(payload, currentUser) {
     );
     const documentId = docResult.rows[0].document_id;
 
+    // 2) Número resiliente
     const radicationNumber = await generateRadicationNumber(client, "IN", entityId);
 
+    // 3) Radicado
     const radResult = await client.query(
       `INSERT INTO radications
         (radication_number, document_id, radication_type, entity_id, created_at, created_by, archived)
@@ -41,6 +46,7 @@ export async function createEntryRadication(payload, currentUser) {
     );
     const radicationRow = radResult.rows[0];
 
+    // 4) Historial
     await client.query(
       `INSERT INTO document_history
         (document_id, user_id, action, action_details, action_date, from_dependency_id, to_dependency_id)
@@ -52,14 +58,29 @@ export async function createEntryRadication(payload, currentUser) {
       ]
     );
 
+    // ── INICIO LÓGICA DEL QR RECUPERADA ──
+    let destinoText = "N/A";
+    if (payload.dependencia_destino) {
+      const depResult = await client.query(
+        "SELECT name FROM dependencies WHERE dependency_id = $1", 
+        [payload.dependencia_destino]
+      );
+      if (depResult.rows.length > 0) {
+        destinoText = depResult.rows[0].name;
+      }
+    }
+    const anexosText = payload.folios ? `${payload.folios} Folio(s)` : "N/A";
+    // ── FIN LÓGICA DEL QR RECUPERADA ──
+
+    // 5) Confirmar en DB
     await client.query("COMMIT");
 
+    // 6) Generar el Sticker QR real
     const sticker = await createStickerPNG({
       radicationNumber,
-      date: new Date().toISOString().slice(0, 19).replace("T", " "),
-      tipo: "ENTRADA",
-      origen: payload.entidad_origen || payload.remitente || "N/A",
-      systemName: "PROMETEO"
+      date: new Date().toISOString().slice(0, 10), // Fecha YYYY-MM-DD
+      destinoText,
+      anexosText
     });
 
     return {
