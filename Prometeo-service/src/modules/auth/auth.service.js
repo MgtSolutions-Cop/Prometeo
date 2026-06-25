@@ -5,55 +5,82 @@ import { pool } from "../../config/db.js";
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "refreshsecret";
 
-// ─────────────────────────────────────────────
-// Genera el Access Token (vida corta: 15 min)
-// Incluye role_id, entity_id y dependency_id
-// para que el middleware pueda verificar permisos
-// sin consultar la BD en cada petición
-// ─────────────────────────────────────────────
 export function generateAccessToken(user) {
   return jwt.sign(
     {
       user_id: user.user_id,
       role_id: user.role_id,
       entity_id: user.entity_id,
-      dependency_id: user.dependency_id
+      dependency_id: user.dependency_id,
     },
     JWT_SECRET,
     { expiresIn: "15m" }
   );
 }
 
-// ─────────────────────────────────────────────
-// Genera el Refresh Token (vida larga: 7 días)
-// Solo guarda el user_id para minimizar
-// la información expuesta en la cookie
-// ─────────────────────────────────────────────
 export function generateRefreshToken(user) {
-  return jwt.sign(
-    { user_id: user.user_id },
-    JWT_REFRESH_SECRET,
-    { expiresIn: "7d" }
-  );
+  return jwt.sign({ user_id: user.user_id }, JWT_REFRESH_SECRET, {
+    expiresIn: "7d",
+  });
 }
 
-// ─────────────────────────────────────────────
-// Verifica y decodifica el Refresh Token
-// Lanza error si está expirado o es inválido
-// ─────────────────────────────────────────────
 export function verifyRefreshToken(token) {
   return jwt.verify(token, JWT_REFRESH_SECRET);
 }
 
 // ─────────────────────────────────────────────
-// Lógica principal de login:
-// 1. Busca el usuario activo por email
-// 2. Verifica la contraseña con bcrypt
-// 3. Consulta los permisos del rol asignado
-// 4. Devuelve tokens + datos del usuario + permisos
+// Resuelve los permisos efectivos del usuario:
+// override de user_permissions > permiso del rol
 // ─────────────────────────────────────────────
+async function resolveEffectivePermissions(userId, roleId) {
+  // Traer permisos del rol
+  const roleResult = await pool.query(
+    `SELECT can_create_users, can_assign_roles,
+            can_configure_trd, can_radicate_documents
+     FROM roles WHERE role_id = $1`,
+    [roleId]
+  );
+  const role = roleResult.rows[0] ?? {};
+
+  // Traer overrides del usuario
+  const overridesResult = await pool.query(
+    `SELECT permission, granted
+     FROM user_permissions
+     WHERE user_id = $1`,
+    [userId]
+  );
+
+  const overrides = {};
+  overridesResult.rows.forEach(({ permission, granted }) => {
+    overrides[permission] = granted;
+  });
+
+  // Resolver: override tiene prioridad, si no hay → usar rol
+  const resolve = (permKey) =>
+    overrides[permKey] !== undefined ? overrides[permKey] : (role[permKey] ?? false);
+
+  const permissions = {
+    can_create_users:       resolve("can_create_users"),
+    can_assign_roles:       resolve("can_assign_roles"),
+    can_configure_trd:      resolve("can_configure_trd"),
+    can_radicate_documents: resolve("can_radicate_documents"),
+  };
+
+  // Origen de cada permiso (para mostrar en UI)
+  const permissionsOrigin = {
+    can_create_users:       overrides["can_create_users"]       !== undefined ? "custom" : "role",
+    can_assign_roles:       overrides["can_assign_roles"]       !== undefined ? "custom" : "role",
+    can_configure_trd:      overrides["can_configure_trd"]      !== undefined ? "custom" : "role",
+    can_radicate_documents: overrides["can_radicate_documents"] !== undefined ? "custom" : "role",
+  };
+
+  return { permissions, permissionsOrigin };
+}
+
+// ════════════════════════════════════════════════
+// loginServices
+// ════════════════════════════════════════════════
 export async function loginServices(email, password) {
-  // Solo usuarios activos pueden iniciar sesión (soft delete)
   const result = await pool.query(
     "SELECT * FROM users WHERE email = $1 AND is_active = true",
     [email]
@@ -65,58 +92,40 @@ export async function loginServices(email, password) {
 
   const user = result.rows[0];
 
-  // Comparamos la contraseña ingresada con el hash almacenado
   const isValid = await bcrypt.compare(password, user.password_hash);
   if (!isValid) {
     throw new Error("Invalid Password");
   }
 
-  // ─────────────────────────────────────────────
-  // NUEVO: Consultamos los permisos del rol
-  // del usuario para enviarlos al frontend.
-  // El frontend los usará para filtrar el navbar
-  // sin necesidad de hacer otra petición.
-  // ─────────────────────────────────────────────
+  // Verificar que el rol esté activo
   const roleResult = await pool.query(
     "SELECT * FROM roles WHERE role_id = $1",
     [user.role_id]
   );
-
-  // Si el rol no existe o está inactivo, bloqueamos el login
   const role = roleResult.rows[0];
   if (!role || !role.is_active) {
     throw new Error("Role not found or inactive");
   }
 
-  // Generamos ambos tokens con los datos del usuario
+  const { permissions, permissionsOrigin } = await resolveEffectivePermissions(
+    user.user_id,
+    user.role_id
+  );
+
   const accessToken = generateAccessToken(user);
   const refreshToken = generateRefreshToken(user);
 
   return {
     accessToken,
     refreshToken,
-    // ─────────────────────────────────────────────
-    // Devolvemos todos los datos que el frontend
-    // necesita guardar en localStorage:
-    // - Datos básicos del usuario
-    // - role_id para identificar el rol
-    // - Objeto permissions con todos los permisos
-    //   del rol (true/false por funcionalidad)
-    // ─────────────────────────────────────────────
     user: {
       id: user.user_id,
       full_name: user.full_name,
       email: user.email,
-      role_id: user.role_id,          // ← NUEVO: necesario para el navbar
+      role_id: user.role_id,
       entity_id: user.entity_id,
-      // Mapeamos cada permiso booleano del rol
-      // para que el frontend sepa qué mostrar
-      permissions: {
-        can_create_users: role.can_create_users,
-        can_assign_roles: role.can_assign_roles,
-        can_configure_trd: role.can_configure_trd,
-        can_radicate_documents: role.can_radicate_documents,
-      }
+      permissions,
+      permissionsOrigin,
     },
   };
 }

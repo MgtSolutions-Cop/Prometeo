@@ -507,6 +507,57 @@
   background: #fff;
 }
 
+/* Badge archivado en la tabla */
+.archivedBadge {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.4);
+  vertical-align: middle;
+}
+
+/* Botón filtro archivados */
+.filtroArchivado {
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+.filtroArchivado.filtroActive {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+/* Campos del modal de edición */
+.editField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.editLabel {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.03em;
+}
+.editInput {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+.editInput::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+.editInput::placeholder { color: rgba(255, 255, 255, 0.2); }
+.editInput:focus { border-color: rgba(229, 57, 53, 0.5); }
+
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
