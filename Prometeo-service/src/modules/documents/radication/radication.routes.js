@@ -4,13 +4,14 @@ import {
   createOutputRadication,
   createInternalRadication,
   getInboundListController,
-  getPrivateStickerController
+  getPrivateStickerController,verifyRadicationPublic
 } from "./radication.controller.js";
 import { authMiddleware } from "../../../middlewares/authMiddleware.js";
 import { requirePermission } from "../../../middlewares/permissionMiddleware.js";
 
 const router = Router();
 
+router.get("/verificar/:numero", verifyRadicationPublic);
 router.use(authMiddleware);
 
 // Endpoint protegido para que solo radicadores puedan ejecutarlo

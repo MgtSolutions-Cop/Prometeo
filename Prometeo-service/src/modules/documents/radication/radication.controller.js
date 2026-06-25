@@ -1,7 +1,7 @@
 import { validateEntryPayload } from "./radication.validations.js";
 import { 
   createEntryRadication as createEntryService, 
-  getInboundRadications 
+  getInboundRadications,getRadicationPublicData 
 } from "./radication.service.js";
 
 import path from "path";
@@ -120,6 +120,27 @@ export async function getPrivateStickerController(req, res) {
   } catch (err) {
     console.error("Error serving sticker:", err);
     return res.status(500).json({ message: "Server error" });
+  }
+}
+// ==========================================
+// CONTROLADOR: VERIFICAR RADICADO (PÚBLICO)
+// ==========================================
+export async function verifyRadicationPublic(req, res) {
+  try {
+    const { numero } = req.params;
+    
+    // Llamamos al service
+    const data = await getRadicationPublicData(numero);
+
+    if (!data) {
+      return res.status(404).json({ valid: false, message: "Radicado no encontrado o inválido" });
+    }
+
+    return res.json({ valid: true, data });
+
+  } catch (err) {
+    console.error("Error verificando radicado público:", err);
+    return res.status(500).json({ valid: false, message: "Error interno del servidor" });
   }
 }
 
