@@ -1,16 +1,13 @@
 import { Router } from "express";
-import {
-  getPrivateStickerController,
-  verificarRadicadoController,
-} from "./rotulos.controller.js";
+import { getPrivateStickerController } from "./rotulos.controller.js";
 import { authMiddleware } from "../../middlewares/authMiddleware.js";
 
 const router = Router();
 
-// Ruta protegida — ver sticker PNG
-router.get("/ver/:filename", authMiddleware, getPrivateStickerController);
+// Protegemos la ruta: solo usuarios autenticados pueden ver el PNG del rótulo
+router.use(authMiddleware);
 
-// Ruta pública — verificar autenticidad desde QR (sin auth)
-router.get("/verificar/:numero", verificarRadicadoController);
+// Nueva ruta limpia: /api/rotulos/ver/nombre_archivo.png
+router.get("/ver/:filename", getPrivateStickerController);
 
 export default router;
