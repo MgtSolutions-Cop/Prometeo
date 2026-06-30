@@ -1,15 +1,6 @@
-// ─────────────────────────────────────────────
-// api.tsx — Capa de comunicación con el backend
-// Todas las peticiones autenticadas pasan por
-// fetchWithAuth que maneja el refresh automático
-// ─────────────────────────────────────────────
-
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
-// ─────────────────────────────────────────────
-// TIPOS
-// ─────────────────────────────────────────────
 export interface UserPermissions {
   can_create_users: boolean;
   can_assign_roles: boolean;
@@ -27,9 +18,6 @@ export interface StoredUser {
   permissions: UserPermissions;
 }
 
-// ─────────────────────────────────────────────
-// loginUser
-// ─────────────────────────────────────────────
 export async function loginUser(email: string, password: string) {
   try {
     const response = await fetch(`${API_URL}/auth/login`, {
@@ -38,18 +26,14 @@ export async function loginUser(email: string, password: string) {
       credentials: "include",
       body: JSON.stringify({ email, password }),
     });
-
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || "Error al iniciar sesión");
     }
-
     const data = await response.json();
-
     if (data.user && typeof window !== "undefined") {
       localStorage.setItem("prometeo_user", JSON.stringify(data.user));
     }
-
     return data;
   } catch (error: any) {
     console.error("Error en login:", error.message);
@@ -57,9 +41,6 @@ export async function loginUser(email: string, password: string) {
   }
 }
 
-// ─────────────────────────────────────────────
-// refreshAccessToken
-// ─────────────────────────────────────────────
 async function refreshAccessToken() {
   try {
     const response = await fetch(`${API_URL}/auth/refresh`, {
@@ -74,9 +55,6 @@ async function refreshAccessToken() {
   }
 }
 
-// ─────────────────────────────────────────────
-// logoutUser
-// ─────────────────────────────────────────────
 export async function logoutUser() {
   try {
     const response = await fetch(`${API_URL}/auth/logout`, {
@@ -94,9 +72,6 @@ export async function logoutUser() {
   }
 }
 
-// ─────────────────────────────────────────────
-// fetchWithAuth — wrapper universal
-// ─────────────────────────────────────────────
 export async function fetchWithAuth(
   endpoint: string,
   options: RequestInit = {}
@@ -115,7 +90,6 @@ export async function fetchWithAuth(
   if (response.status === 401) {
     console.log("Token expirado, intentando refrescar...");
     const tokenRefreshed = await refreshAccessToken();
-
     if (tokenRefreshed) {
       response = await fetch(`${API_URL}${endpoint}`, fetchOptions);
     } else {
@@ -134,9 +108,6 @@ export async function fetchWithAuth(
   return response.json();
 }
 
-// ─────────────────────────────────────────────
-// getCurrentUser
-// ─────────────────────────────────────────────
 export function getCurrentUser(): StoredUser | null {
   if (typeof window === "undefined") return null;
   try {
@@ -147,9 +118,6 @@ export function getCurrentUser(): StoredUser | null {
   }
 }
 
-// ─────────────────────────────────────────────
-// getMe
-// ─────────────────────────────────────────────
 export async function getMe(): Promise<StoredUser> {
   const data = await fetchWithAuth("/auth/me");
   if (typeof window !== "undefined") {
@@ -224,24 +192,9 @@ export async function createInternalRadication(data: any) {
   });
 }
 
-// Trae TODOS los radicados (entrada, salida, interno) incluyendo archivados
-export async function getAllRadications() {
-  const data = await fetchWithAuth("/radication/entry/inbound");
-  return data.map((r: any) => ({
-    radication_number: r.radication_number,
-    created_at:        r.created_at,
-    subject:           r.subject || r.asunto,
-    status:            r.status  || r.estado || "pending",
-    remitente:         r.remitente || r.sender || "—",
-    archived:          r.archived ?? false,
-    fecha_documento:   r.fecha_documento || "",
-    observaciones:     r.observaciones   || "",
-  }));
-}
-
-// Mantener para compatibilidad con header/notificaciones
+// Para notificaciones del header (solo activos, sin metadata extra)
 export async function getInboundRadications() {
-  const data = await fetchWithAuth("/radication/entry/inbound");
+  const data = await fetchWithAuth("/radication/inbound");
   return data
     .filter((r: any) => !r.archived)
     .map((r: any) => ({
@@ -253,26 +206,70 @@ export async function getInboundRadications() {
     }));
 }
 
-// ── Archivar radicado ──
+// Para la tabla principal — incluye TODOS los campos del metadata
+export async function getAllRadications() {
+  const data = await fetchWithAuth("/radication/inbound");
+  return data.map((r: any) => ({
+    radication_number:     r.radication_number,
+    created_at:            r.created_at,
+    subject:               r.subject               || r.asunto || "",
+    status:                r.status                || r.estado || "pending",
+    remitente:             r.remitente             || r.sender || "—",
+    archived:              r.archived              ?? false,
+    // Campos básicos
+    fecha_documento:       r.fecha_documento       || "",
+    observaciones:         r.observaciones         || "",
+    // Campos nuevos del metadata
+    clase_correspondencia: r.clase_correspondencia || "OFICIAL",
+    cedula_nit:            r.cedula_nit            || "",
+    entidad_origen:        r.entidad_origen        || "",
+    correo:                r.correo                || "",
+    direccion:             r.direccion             || "",
+    telefono:              r.telefono              || "",
+    tipo_documento:        r.tipo_documento        || "Oficio",
+    no_origen:             r.no_origen             || "",
+    no_guia:               r.no_guia               || "",
+    referenciados:         r.referenciados         || "",
+    dependencia_destino:   r.dependencia_destino   || "",
+    destinatario:          r.destinatario          || "",
+    jefe_dependencia:      r.jefe_dependencia      || "",
+    encargado:             r.encargado             || "",
+    copia:                 r.copia                 || "NO",
+    folios:                r.folios                || "1",
+    anexos:                r.anexos                || "0",
+    medio_correspondencia: r.medio_correspondencia || "Correo Electrónico",
+    aplica_confidencial:   r.aplica_confidencial   || false,
+    llevado_a_la_mano:     r.llevado_a_la_mano     || false,
+  }));
+}
+
+
+// ── Archivar / Desarchivar ──
 export async function archiveRadication(radicationNumber: string) {
   return await fetchWithAuth(
-    `/radication/entry/${encodeURIComponent(radicationNumber)}/archive`,
+    `/radication/${encodeURIComponent(radicationNumber)}/archive`,
+    { method: "PATCH" }
+  );
+}
+export async function unarchiveRadication(radicationNumber: string) {
+  return await fetchWithAuth(
+    `/radication/${encodeURIComponent(radicationNumber)}/unarchive`,
     { method: "PATCH" }
   );
 }
 
-// ── Actualizar radicado ──
+// ── Actualizar radicado (todos los campos del metadata) ──
 export async function updateRadication(radicationNumber: string, data: any) {
   return await fetchWithAuth(
-    `/radication/entry/${encodeURIComponent(radicationNumber)}`,
+    `/radication/${encodeURIComponent(radicationNumber)}`,
     { method: "PUT", body: JSON.stringify(data) }
   );
 }
 
-// ── PDF radicado ──
+// ── PDF ──
 export async function getRadicationPDFUrl(radicationNumber: string): Promise<string> {
   const response = await fetch(
-    `${API_URL}/radication/entry/pdf/${encodeURIComponent(radicationNumber)}`,
+    `${API_URL}/radication/pdf/${encodeURIComponent(radicationNumber)}`,
     { method: "GET", credentials: "include" }
   );
   if (!response.ok) {
@@ -284,10 +281,8 @@ export async function getRadicationPDFUrl(radicationNumber: string): Promise<str
 }
 
 // ════════════════════════════════════════
-// RÓTULOS — Módulo de Miguel
+// RÓTULOS
 // ════════════════════════════════════════
-
-// Sticker PNG privado — nueva ruta /rotulos/ver/
 export async function getPrivateSticker(filename: string) {
   const response = await fetch(`${API_URL}/rotulos/ver/${filename}`, {
     method: "GET",
@@ -298,8 +293,7 @@ export async function getPrivateSticker(filename: string) {
   return URL.createObjectURL(blob);
 }
 
-// Verificación pública desde QR — sin autenticación
-// El ciudadano escanea el QR del rótulo y llega a /verificar/[numero]
+// Verificación pública desde QR
 export async function verifyRadicationPublic(numero: string) {
   const response = await fetch(
     `${API_URL}/rotulos/verificar/${encodeURIComponent(numero)}`,

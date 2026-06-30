@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./radicar.module.css";
 import {
@@ -7,7 +8,7 @@ import {
   getPrivateSticker,
   getRadicationPDFUrl,
   archiveRadication,
-  updateRadication,
+  unarchiveRadication,
 } from "../../services/api";
 
 interface Radicado {
@@ -19,14 +20,6 @@ interface Radicado {
   archived: boolean;
   fecha_documento?: string;
   observaciones?: string;
-}
-
-interface EditForm {
-  subject:         string;
-  remitente:       string;
-  fecha_documento: string;
-  observaciones:   string;
-  status:          string;
 }
 
 function StatusTimeline({ status }: { status: string }) {
@@ -71,6 +64,7 @@ function formatDate(iso: string) {
 const FILTROS = ["Todos", "Entrada", "Salida", "Interno", "Archivados"];
 
 export default function RadicarPage() {
+  const router = useRouter();
   const [radicados, setRadicados] = useState<Radicado[]>([]);
   const [loading,   setLoading]   = useState(true);
   const [error,     setError]     = useState<string | null>(null);
@@ -86,15 +80,6 @@ export default function RadicarPage() {
   const [pdfUrl,       setPdfUrl]       = useState<string | null>(null);
   const [pdfRadNumber, setPdfRadNumber] = useState<string>("");
   const [loadingPdf,   setLoadingPdf]   = useState<string | null>(null);
-
-  // ── Modal editar ──
-  const [editModal,      setEditModal]      = useState(false);
-  const [editRadNumber,  setEditRadNumber]  = useState<string>("");
-  const [editForm,       setEditForm]       = useState<EditForm>({
-    subject: "", remitente: "", fecha_documento: "", observaciones: "", status: "pending"
-  });
-  const [editLoading,    setEditLoading]    = useState(false);
-  const [editError,      setEditError]      = useState<string>("");
 
   const fetchData = () => {
     setLoading(true);
@@ -114,9 +99,7 @@ export default function RadicarPage() {
   }
 
   const datos = radicados.filter((r) => {
-    // Filtro archivados
     if (filtro === "Archivados") return r.archived === true;
-    // El resto excluye archivados
     if (r.archived) return false;
     const tipo = getTipo(r.radication_number);
     const matchTipo   = filtro === "Todos" || tipo === filtro;
@@ -181,7 +164,7 @@ export default function RadicarPage() {
 
   // ── Handler archivar ──
   async function handleArchive(radicationNumber: string) {
-    if (!confirm(`¿Archivar el radicado ${radicationNumber}? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(`¿Archivar el radicado ${radicationNumber}?`)) return;
     try {
       await archiveRadication(radicationNumber);
       fetchData();
@@ -190,32 +173,14 @@ export default function RadicarPage() {
     }
   }
 
-  // ── Handlers editar ──
-  function handleOpenEdit(r: Radicado) {
-    setEditRadNumber(r.radication_number);
-    setEditForm({
-      subject:         r.subject         || "",
-      remitente:       r.remitente       || "",
-      fecha_documento: r.fecha_documento || "",
-      observaciones:   r.observaciones   || "",
-      status:          r.status          || "pending",
-    });
-    setEditError("");
-    setEditModal(true);
-  }
-
-  async function handleSaveEdit(e: React.FormEvent) {
-    e.preventDefault();
-    setEditLoading(true);
-    setEditError("");
+  // ── Handler desarchivar ──
+  async function handleUnarchive(radicationNumber: string) {
+    if (!confirm(`¿Desarchivar el radicado ${radicationNumber}? Volverá a aparecer en la lista activa.`)) return;
     try {
-      await updateRadication(editRadNumber, editForm);
-      setEditModal(false);
+      await unarchiveRadication(radicationNumber);
       fetchData();
-    } catch (err: any) {
-      setEditError(err.message || "Error al actualizar");
-    } finally {
-      setEditLoading(false);
+    } catch (e: any) {
+      alert("Error al desarchivar: " + e.message);
     }
   }
 
@@ -359,10 +324,10 @@ export default function RadicarPage() {
                           )}
                         </button>
 
-                        {/* Editar — solo si no está archivado */}
+                        {/* Editar — navega a página de edición */}
                         {!r.archived && (
                           <button className={styles.accionBtn} title="Editar"
-                            onClick={() => handleOpenEdit(r)}>
+                            onClick={() => router.push(`/dashboard/radicar/edit/${encodeURIComponent(r.radication_number)}`)}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -370,7 +335,7 @@ export default function RadicarPage() {
                           </button>
                         )}
 
-                        {/* Archivar — solo si no está archivado */}
+                        {/* Archivar — solo si NO está archivado */}
                         {!r.archived && (
                           <button
                             className={`${styles.accionBtn} ${styles.accionDelete}`}
@@ -380,6 +345,22 @@ export default function RadicarPage() {
                               <polyline points="21 8 21 21 3 21 3 8"/>
                               <rect x="1" y="3" width="22" height="5"/>
                               <line x1="10" y1="12" x2="14" y2="12"/>
+                            </svg>
+                          </button>
+                        )}
+
+                        {/* Desarchivar — solo si está archivado */}
+                        {r.archived && (
+                          <button
+                            className={styles.accionBtn}
+                            title="Desarchivar"
+                            style={{ color: "#22c55e" }}
+                            onClick={() => handleUnarchive(r.radication_number)}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="21 8 21 21 3 21 3 8"/>
+                              <rect x="1" y="3" width="22" height="5"/>
+                              <polyline points="9 12 12 9 15 12"/>
+                              <line x1="12" y1="9" x2="12" y2="17"/>
                             </svg>
                           </button>
                         )}
@@ -397,83 +378,6 @@ export default function RadicarPage() {
       <p className={styles.count}>
         {datos.length} radicado{datos.length !== 1 ? "s" : ""} encontrado{datos.length !== 1 ? "s" : ""}
       </p>
-
-      {/* ══ MODAL EDITAR ══ */}
-      {editModal && (
-        <div className={styles.modalOverlay} onClick={() => setEditModal(false)}>
-          <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: "520px" }}>
-            <div className={styles.modalHeader}>
-              <div>
-                <p className={styles.modalEyebrow}>Editar radicado</p>
-                <p className={styles.modalTitle}>{editRadNumber}</p>
-              </div>
-              <button className={styles.modalClose} onClick={() => setEditModal(false)}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveEdit} style={{ padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: "14px" }}>
-
-              <div className={styles.editField}>
-                <label className={styles.editLabel}>Asunto</label>
-                <input className={styles.editInput} type="text"
-                  value={editForm.subject}
-                  onChange={(e) => setEditForm({ ...editForm, subject: e.target.value })} />
-              </div>
-
-              <div className={styles.editField}>
-                <label className={styles.editLabel}>Remitente</label>
-                <input className={styles.editInput} type="text"
-                  value={editForm.remitente}
-                  onChange={(e) => setEditForm({ ...editForm, remitente: e.target.value })} />
-              </div>
-
-              <div className={styles.editField}>
-                <label className={styles.editLabel}>Fecha del documento</label>
-                <input className={styles.editInput} type="date"
-                  value={editForm.fecha_documento}
-                  onChange={(e) => setEditForm({ ...editForm, fecha_documento: e.target.value })} />
-              </div>
-
-              <div className={styles.editField}>
-                <label className={styles.editLabel}>Estado</label>
-                <select className={styles.editInput}
-                  value={editForm.status}
-                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}>
-                  <option value="pending">Recibido</option>
-                  <option value="in_review">En revisión</option>
-                  <option value="approved">Aprobado</option>
-                </select>
-              </div>
-
-              <div className={styles.editField}>
-                <label className={styles.editLabel}>Observaciones</label>
-                <input className={styles.editInput} type="text"
-                  value={editForm.observaciones}
-                  onChange={(e) => setEditForm({ ...editForm, observaciones: e.target.value })} />
-              </div>
-
-              {editError && (
-                <p style={{ color: "#E53935", fontSize: "13px", margin: 0 }}>{editError}</p>
-              )}
-
-              <div className={styles.modalActions}>
-                <button type="button" className={styles.modalBtnSecondary}
-                  onClick={() => setEditModal(false)}>
-                  Cancelar
-                </button>
-                <button type="submit" className={styles.modalBtnPrimary} disabled={editLoading}>
-                  {editLoading ? "Guardando..." : "Guardar cambios"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* ══ MODAL RÓTULO ══ */}
       {stickerUrl && (
