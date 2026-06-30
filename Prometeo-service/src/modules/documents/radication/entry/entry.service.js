@@ -12,7 +12,6 @@ export async function createEntryRadication(payload, currentUser) {
     await client.query("BEGIN");
     const entityId = currentUser.entity_id;
 
-    // 1) Guardar documento
     const docResult = await client.query(
       `INSERT INTO documents
         (subject, content, created_by, dependency_id, entity_id, status, priority, due_date, trd_code, metadata, created_at)
@@ -33,10 +32,8 @@ export async function createEntryRadication(payload, currentUser) {
     );
     const documentId = docResult.rows[0].document_id;
 
-    // 2) Número resiliente
     const radicationNumber = await generateRadicationNumber(client, "IN", entityId);
 
-    // 3) Radicado
     const radResult = await client.query(
       `INSERT INTO radications
         (radication_number, document_id, radication_type, entity_id, created_at, created_by, archived)
@@ -46,7 +43,6 @@ export async function createEntryRadication(payload, currentUser) {
     );
     const radicationRow = radResult.rows[0];
 
-    // 4) Historial
     await client.query(
       `INSERT INTO document_history
         (document_id, user_id, action, action_details, action_date, from_dependency_id, to_dependency_id)
@@ -58,7 +54,6 @@ export async function createEntryRadication(payload, currentUser) {
       ]
     );
 
-    // ── INICIO LÓGICA DEL QR RECUPERADA ──
     let destinoText = "N/A";
     if (payload.dependencia_destino) {
       const depResult = await client.query(
@@ -70,15 +65,12 @@ export async function createEntryRadication(payload, currentUser) {
       }
     }
     const anexosText = payload.folios ? `${payload.folios} Folio(s)` : "N/A";
-    // ── FIN LÓGICA DEL QR RECUPERADA ──
 
-    // 5) Confirmar en DB
     await client.query("COMMIT");
 
-    // 6) Generar el Sticker QR real
     const sticker = await createStickerPNG({
       radicationNumber,
-      date: new Date().toISOString().slice(0, 10), // Fecha YYYY-MM-DD
+      date: new Date().toISOString().slice(0, 10),
       destinoText,
       anexosText
     });
@@ -100,7 +92,7 @@ export async function createEntryRadication(payload, currentUser) {
   }
 }
 
-
+// ── ACTUALIZADO: expone todos los campos del metadata para el formulario de edición ──
 export async function getInboundRadications(entityId) {
   const result = await pool.query(
     `SELECT
@@ -110,9 +102,29 @@ export async function getInboundRadications(entityId) {
         r.radication_type,
         d.subject,
         d.status,
-        d.metadata->>'remitente'        as remitente,
-        d.metadata->>'fecha_documento'  as fecha_documento,
-        d.metadata->>'observaciones'    as observaciones
+        d.metadata->>'remitente'             as remitente,
+        d.metadata->>'fecha_documento'       as fecha_documento,
+        d.metadata->>'observaciones'         as observaciones,
+        d.metadata->>'cedula_nit'            as cedula_nit,
+        d.metadata->>'entidad_origen'        as entidad_origen,
+        d.metadata->>'correo'                as correo,
+        d.metadata->>'tipo_documento'        as tipo_documento,
+        d.metadata->>'dependencia_destino'   as dependencia_destino,
+        d.metadata->>'destinatario'          as destinatario,
+        d.metadata->>'folios'                as folios,
+        d.metadata->>'medio_correspondencia' as medio_correspondencia,
+        d.metadata->>'clase_correspondencia' as clase_correspondencia,
+        d.metadata->>'direccion'             as direccion,
+        d.metadata->>'telefono'              as telefono,
+        d.metadata->>'no_origen'             as no_origen,
+        d.metadata->>'no_guia'               as no_guia,
+        d.metadata->>'referenciados'         as referenciados,
+        d.metadata->>'jefe_dependencia'      as jefe_dependencia,
+        d.metadata->>'encargado'             as encargado,
+        d.metadata->>'copia'                 as copia,
+        d.metadata->>'anexos'                as anexos,
+        d.metadata->>'aplica_confidencial'   as aplica_confidencial,
+        d.metadata->>'llevado_a_la_mano'     as llevado_a_la_mano
      FROM radications r
      JOIN documents d ON r.document_id = d.document_id
      WHERE r.entity_id = $1
@@ -121,6 +133,7 @@ export async function getInboundRadications(entityId) {
   );
   return result.rows;
 }
+
 
 export async function generateRadicationPDF(radicationNumber, entityId) {
   const result = await pool.query(
@@ -224,8 +237,6 @@ export async function generateRadicationPDF(radicationNumber, entityId) {
   });
 }
 
-
-
 export async function archiveRadication(radicationNumber, entityId) {
   const result = await pool.query(
     `UPDATE radications
@@ -238,37 +249,66 @@ export async function archiveRadication(radicationNumber, entityId) {
   return result.rows[0];
 }
 
-export async function updateRadication(radicationNumber, entityId, data) {
-  const { subject, remitente, fecha_documento, observaciones, status } = data;
+export async function unarchiveRadication(radicationNumber, entityId) {
+  const result = await pool.query(
+    `UPDATE radications
+     SET archived = false, archived_at = NULL
+     WHERE radication_number = $1 AND entity_id = $2
+     RETURNING radication_number, archived`,
+    [radicationNumber, entityId]
+  );
+  if (result.rows.length === 0) throw new Error("Radicado no encontrado");
+  return result.rows[0];
+}
 
-  // Actualizar documento (asunto, observaciones)
+export async function updateRadication(radicationNumber, entityId, data) {
+  const {
+    subject, remitente, fecha_documento, observaciones, status,
+    cedula_nit, entidad_origen, correo, tipo_documento,
+    dependencia_destino, destinatario, folios, medio_correspondencia
+  } = data;
+
   await pool.query(
     `UPDATE documents d
-     SET subject  = COALESCE($1, subject),
-         status   = COALESCE($2, status),
-         metadata = jsonb_set(
-           jsonb_set(
-             jsonb_set(metadata, '{remitente}',       to_jsonb($3::text)),
-             '{fecha_documento}', to_jsonb($4::text)
-           ),
-           '{observaciones}', to_jsonb($5::text)
-         )
+     SET subject = COALESCE($1, subject),
+         status  = COALESCE($2, status),
+         metadata = metadata
+           || jsonb_build_object(
+               'remitente',             $3::text,
+               'fecha_documento',       $4::text,
+               'observaciones',         $5::text,
+               'cedula_nit',            $6::text,
+               'entidad_origen',        $7::text,
+               'correo',                $8::text,
+               'tipo_documento',        $9::text,
+               'dependencia_destino',   $10::text,
+               'destinatario',          $11::text,
+               'folios',                $12::text,
+               'medio_correspondencia', $13::text
+             )
      FROM radications r
      WHERE r.document_id = d.document_id
-       AND r.radication_number = $6
-       AND r.entity_id = $7`,
+       AND r.radication_number = $14
+       AND r.entity_id = $15`,
     [
       subject || null,
       status  || null,
-      remitente       || "",
-      fecha_documento || "",
-      observaciones   || "",
+      remitente             || "",
+      fecha_documento       || "",
+      observaciones         || "",
+      cedula_nit            || "",
+      entidad_origen        || "",
+      correo                || "",
+      tipo_documento        || "",
+      dependencia_destino   ? String(dependencia_destino) : "",
+      destinatario          || "",
+      folios                ? String(folios) : "1",
+      medio_correspondencia || "",
       radicationNumber,
       entityId
     ]
   );
 
-  // Retornar el radicado actualizado
   const result = await pool.query(
     `SELECT r.radication_number, r.radication_type, r.created_at, r.archived,
             d.subject, d.status, d.metadata
@@ -281,4 +321,3 @@ export async function updateRadication(radicationNumber, entityId, data) {
   if (result.rows.length === 0) throw new Error("Radicado no encontrado");
   return result.rows[0];
 }
-

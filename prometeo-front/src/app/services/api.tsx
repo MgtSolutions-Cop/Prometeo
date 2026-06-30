@@ -1,16 +1,6 @@
-// ─────────────────────────────────────────────
-// api.tsx — Capa de comunicación con el backend
-// Todas las peticiones autenticadas pasan por
-// fetchWithAuth que maneja el refresh automático
-// ─────────────────────────────────────────────
-
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
-// ─────────────────────────────────────────────
-// TIPOS — definen la forma del usuario que
-// guardamos en localStorage y usamos en el app
-// ─────────────────────────────────────────────
 export interface UserPermissions {
   can_create_users: boolean;
   can_assign_roles: boolean;
@@ -28,40 +18,22 @@ export interface StoredUser {
   permissions: UserPermissions;
 }
 
-// ─────────────────────────────────────────────
-// loginUser
-// Envía credenciales, recibe cookies httpOnly
-// y guarda el objeto user en localStorage para
-// que el navbar y otros componentes lo lean
-// sin hacer peticiones extra al servidor
-// ─────────────────────────────────────────────
 export async function loginUser(email: string, password: string) {
   try {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include", // envía/recibe cookies
+      credentials: "include",
       body: JSON.stringify({ email, password }),
     });
-
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || "Error al iniciar sesión");
     }
-
     const data = await response.json();
-
-    // ─────────────────────────────────────────────
-    // Guardamos el usuario completo en localStorage.
-    // Incluye role_id y permissions para que el
-    // navbar pueda filtrar sin petición adicional.
-    // IMPORTANTE: nunca guardar tokens aquí,
-    // esos van solo en cookies httpOnly.
-    // ─────────────────────────────────────────────
     if (data.user && typeof window !== "undefined") {
       localStorage.setItem("prometeo_user", JSON.stringify(data.user));
     }
-
     return data;
   } catch (error: any) {
     console.error("Error en login:", error.message);
@@ -69,12 +41,6 @@ export async function loginUser(email: string, password: string) {
   }
 }
 
-// ─────────────────────────────────────────────
-// refreshAccessToken
-// Llama al endpoint /auth/refresh enviando
-// la cookie del refreshToken automáticamente.
-// Si falla significa que la sesión expiró
-// ─────────────────────────────────────────────
 async function refreshAccessToken() {
   try {
     const response = await fetch(`${API_URL}/auth/refresh`, {
@@ -89,18 +55,12 @@ async function refreshAccessToken() {
   }
 }
 
-// ─────────────────────────────────────────────
-// logoutUser
-// Limpia cookies en el servidor y borra el
-// usuario de localStorage en el cliente
-// ─────────────────────────────────────────────
 export async function logoutUser() {
   try {
     const response = await fetch(`${API_URL}/auth/logout`, {
       method: "POST",
       credentials: "include",
     });
-    // Limpiamos localStorage al cerrar sesión
     if (typeof window !== "undefined") {
       localStorage.removeItem("prometeo_user");
     }
@@ -112,13 +72,6 @@ export async function logoutUser() {
   }
 }
 
-// ─────────────────────────────────────────────
-// fetchWithAuth — wrapper universal
-// Toda petición autenticada pasa por aquí.
-// Si el servidor responde 401 (token expirado),
-// intenta refresh automático y reintenta.
-// Si el refresh falla, dispara SESSION_EXPIRED
-// ─────────────────────────────────────────────
 export async function fetchWithAuth(
   endpoint: string,
   options: RequestInit = {}
@@ -134,16 +87,12 @@ export async function fetchWithAuth(
 
   let response = await fetch(`${API_URL}${endpoint}`, fetchOptions);
 
-  // Token expirado — intentamos renovarlo
   if (response.status === 401) {
     console.log("Token expirado, intentando refrescar...");
     const tokenRefreshed = await refreshAccessToken();
-
     if (tokenRefreshed) {
-      // Reintentamos la petición original con el nuevo token
       response = await fetch(`${API_URL}${endpoint}`, fetchOptions);
     } else {
-      // Refresh falló — sesión terminada definitivamente
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("SESSION_EXPIRED"));
       }
@@ -159,13 +108,6 @@ export async function fetchWithAuth(
   return response.json();
 }
 
-// ─────────────────────────────────────────────
-// getCurrentUser
-// Lee el usuario guardado en localStorage.
-// Devuelve null si no hay sesión activa.
-// Usado por el navbar para obtener permisos
-// sin hacer fetch al servidor
-// ─────────────────────────────────────────────
 export function getCurrentUser(): StoredUser | null {
   if (typeof window === "undefined") return null;
   try {
@@ -176,15 +118,8 @@ export function getCurrentUser(): StoredUser | null {
   }
 }
 
-// ─────────────────────────────────────────────
-// getMe — refresca los datos del usuario
-// Llama a GET /api/auth/me para obtener los
-// permisos actuales del rol desde BD y actualiza
-// localStorage. Útil si el admin cambió permisos
-// ─────────────────────────────────────────────
 export async function getMe(): Promise<StoredUser> {
   const data = await fetchWithAuth("/auth/me");
-  // Actualizamos localStorage con datos frescos
   if (typeof window !== "undefined") {
     localStorage.setItem("prometeo_user", JSON.stringify(data));
   }
@@ -244,14 +179,12 @@ export async function createEntryRadication(data: any) {
     body: JSON.stringify(data),
   });
 }
-
 export async function createOutputRadication(data: any) {
   return await fetchWithAuth("/radication/output", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
-
 export async function createInternalRadication(data: any) {
   return await fetchWithAuth("/radication/internal", {
     method: "POST",
@@ -259,101 +192,81 @@ export async function createInternalRadication(data: any) {
   });
 }
 
+// Para notificaciones del header (solo activos, sin metadata extra)
 export async function getInboundRadications() {
   const data = await fetchWithAuth("/radication/inbound");
-  return data.map((r: any) => ({
-    radication_number: r.radication_number,
-    created_at: r.created_at,
-    subject: r.subject || r.asunto,
-    status: r.status || r.estado || "pending",
-    remitente: r.remitente || r.sender || "—",
-  }));
+  return data
+    .filter((r: any) => !r.archived)
+    .map((r: any) => ({
+      radication_number: r.radication_number,
+      created_at:        r.created_at,
+      subject:           r.subject || r.asunto,
+      status:            r.status  || r.estado || "pending",
+      remitente:         r.remitente || r.sender || "—",
+    }));
 }
-// ════════════════════════════════════════
-// Obtener TODOS los radicados (entrada, salida, internos)
-// Usa el mismo endpoint que "inbound" porque ya devuelve todos los tipos.
-// ════════════════════════════════════════
+
+// Para la tabla principal — incluye TODOS los campos del metadata
 export async function getAllRadications() {
-  // Reutilizamos el mismo endpoint que ya devuelve todos los radicados de la entidad.
-  // Nota: el backend lo llama "inbound" pero en realidad retorna todo.
   const data = await fetchWithAuth("/radication/inbound");
   return data.map((r: any) => ({
-    radication_number: r.radication_number,
-    created_at: r.created_at,
-    subject: r.subject || r.asunto,
-    status: r.status || r.estado || "pending",
-    remitente: r.remitente || r.sender || "—",
-    archived: r.archived ?? false,
-    fecha_documento: r.fecha_documento || "",
-    observaciones: r.observaciones || "",
+    radication_number:     r.radication_number,
+    created_at:            r.created_at,
+    subject:               r.subject               || r.asunto || "",
+    status:                r.status                || r.estado || "pending",
+    remitente:             r.remitente             || r.sender || "—",
+    archived:              r.archived              ?? false,
+    // Campos básicos
+    fecha_documento:       r.fecha_documento       || "",
+    observaciones:         r.observaciones         || "",
+    // Campos nuevos del metadata
+    clase_correspondencia: r.clase_correspondencia || "OFICIAL",
+    cedula_nit:            r.cedula_nit            || "",
+    entidad_origen:        r.entidad_origen        || "",
+    correo:                r.correo                || "",
+    direccion:             r.direccion             || "",
+    telefono:              r.telefono              || "",
+    tipo_documento:        r.tipo_documento        || "Oficio",
+    no_origen:             r.no_origen             || "",
+    no_guia:               r.no_guia               || "",
+    referenciados:         r.referenciados         || "",
+    dependencia_destino:   r.dependencia_destino   || "",
+    destinatario:          r.destinatario          || "",
+    jefe_dependencia:      r.jefe_dependencia      || "",
+    encargado:             r.encargado             || "",
+    copia:                 r.copia                 || "NO",
+    folios:                r.folios                || "1",
+    anexos:                r.anexos                || "0",
+    medio_correspondencia: r.medio_correspondencia || "Correo Electrónico",
+    aplica_confidencial:   r.aplica_confidencial   || false,
+    llevado_a_la_mano:     r.llevado_a_la_mano     || false,
   }));
 }
 
-// ════════════════════════════════════════
-// Archivar un radicado
-// PATCH /radication/:radicationNumber/archive
-// ════════════════════════════════════════
+
+// ── Archivar / Desarchivar ──
 export async function archiveRadication(radicationNumber: string) {
   return await fetchWithAuth(
     `/radication/${encodeURIComponent(radicationNumber)}/archive`,
     { method: "PATCH" }
   );
 }
-
-// ════════════════════════════════════════
-// Actualizar un radicado
-// PUT /radication/:radicationNumber
-// ════════════════════════════════════════
-export async function updateRadication(
-  radicationNumber: string,
-  data: any
-) {
+export async function unarchiveRadication(radicationNumber: string) {
   return await fetchWithAuth(
-    `/radication/${encodeURIComponent(radicationNumber)}`,
-    {
-      method: "PUT",
-      body: JSON.stringify(data),
-    }
+    `/radication/${encodeURIComponent(radicationNumber)}/unarchive`,
+    { method: "PATCH" }
   );
 }
 
-// ─────────────────────────────────────────────
-// VERIFICACIÓN PÚBLICA (Para el QR del Rótulo)
-// No usa fetchWithAuth porque el ciudadano no
-// tiene sesión iniciada.
-// ─────────────────────────────────────────────
-export async function verifyRadicationPublic(numero: string) {
-  const response = await fetch(`${API_URL}/radication/verificar/${encodeURIComponent(numero)}`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" }
-  });
-  
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || "Radicado inválido o no encontrado");
-  }
-  
-  return response.json();
+// ── Actualizar radicado (todos los campos del metadata) ──
+export async function updateRadication(radicationNumber: string, data: any) {
+  return await fetchWithAuth(
+    `/radication/${encodeURIComponent(radicationNumber)}`,
+    { method: "PUT", body: JSON.stringify(data) }
+  );
 }
 
-// ════════════════════════════════════════
-// RÓTULOS / STICKERS (Nuevo Módulo)
-// ════════════════════════════════════════
-export async function getPrivateSticker(filename: string) {
-  // Actualizado para apuntar a la nueva ruta /rotulos/ver/
-  const response = await fetch(`${API_URL}/rotulos/ver/${filename}`, {
-    method: "GET",
-    credentials: "include", // Require auth
-  });
-  if (!response.ok) throw new Error("No se pudo cargar el sticker protegido");
-  const blob = await response.blob();
-  return URL.createObjectURL(blob);
-}
-
-// ==========================================
-// NOTA: Esta función se deprecará pronto ya
-// que estamos usando @react-pdf/renderer
-// ==========================================
+// ── PDF ──
 export async function getRadicationPDFUrl(radicationNumber: string): Promise<string> {
   const response = await fetch(
     `${API_URL}/radication/pdf/${encodeURIComponent(radicationNumber)}`,
@@ -365,6 +278,32 @@ export async function getRadicationPDFUrl(radicationNumber: string): Promise<str
   }
   const blob = await response.blob();
   return URL.createObjectURL(blob);
+}
+
+// ════════════════════════════════════════
+// RÓTULOS
+// ════════════════════════════════════════
+export async function getPrivateSticker(filename: string) {
+  const response = await fetch(`${API_URL}/rotulos/ver/${filename}`, {
+    method: "GET",
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("No se pudo cargar el sticker protegido");
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
+}
+
+// Verificación pública desde QR
+export async function verifyRadicationPublic(numero: string) {
+  const response = await fetch(
+    `${API_URL}/rotulos/verificar/${encodeURIComponent(numero)}`,
+    { method: "GET", headers: { "Content-Type": "application/json" } }
+  );
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Radicado inválido o no encontrado");
+  }
+  return response.json();
 }
 
 // ════════════════════════════════════════
