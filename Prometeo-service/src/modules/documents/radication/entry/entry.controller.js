@@ -4,6 +4,7 @@ import {
   getInboundRadications,
   generateRadicationPDF,
   archiveRadication,
+  unarchiveRadication,
   updateRadication
 } from "./entry.service.js";
 import path from "path";
@@ -94,5 +95,16 @@ export async function updateRadicationController(req, res) {
   } catch (err) {
     console.error("updateRadicationController error:", err);
     return res.status(500).json({ message: err.message || "Error al actualizar" });
+  }
+}
+
+// -- desarchivar radicado --
+export async function unarchiveRadicationController(req, res) {
+  try {
+    const { radicationNumber } = req.params;
+    const result = await unarchiveRadication(radicationNumber, req.user.entity_id);
+    return res.json({ message: "Radicado desarchivado correctamente", radication: result });
+  } catch (err) {
+    return res.status(500).json({ message: err.message || "Error al desarchivar" });
   }
 }
