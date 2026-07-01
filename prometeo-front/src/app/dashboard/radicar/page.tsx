@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 import styles from "./radicar.module.css";
 import {
   getAllRadications,
@@ -67,16 +68,13 @@ export default function RadicarPage() {
   const router = useRouter();
   const [radicados, setRadicados] = useState<Radicado[]>([]);
   const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState<string | null>(null);
   const [filtro,    setFiltro]    = useState("Todos");
   const [busqueda,  setBusqueda]  = useState("");
 
-  // ── Modal rótulo ──
   const [stickerUrl,       setStickerUrl]       = useState<string | null>(null);
   const [stickerRadNumber, setStickerRadNumber] = useState<string>("");
   const [loadingSticker,   setLoadingSticker]   = useState<string | null>(null);
 
-  // ── Modal PDF ──
   const [pdfUrl,       setPdfUrl]       = useState<string | null>(null);
   const [pdfRadNumber, setPdfRadNumber] = useState<string>("");
   const [loadingPdf,   setLoadingPdf]   = useState<string | null>(null);
@@ -85,7 +83,7 @@ export default function RadicarPage() {
     setLoading(true);
     getAllRadications()
       .then(setRadicados)
-      .catch((e) => setError(e.message))
+      .catch((e) => toast.error("Error al cargar radicados: " + e.message))
       .finally(() => setLoading(false));
   };
 
@@ -119,7 +117,7 @@ export default function RadicarPage() {
       setStickerUrl(url);
       setStickerRadNumber(radicationNumber);
     } catch (e: any) {
-      alert("No se pudo cargar el rótulo: " + e.message);
+      toast.error("No se pudo cargar el rótulo: " + e.message);
     } finally {
       setLoadingSticker(null);
     }
@@ -135,6 +133,7 @@ export default function RadicarPage() {
     const a = document.createElement("a");
     a.href = stickerUrl; a.download = `Rotulo_${stickerRadNumber}.png`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    toast.success("Rótulo descargado");
   }
 
   // ── Handlers PDF ──
@@ -144,7 +143,7 @@ export default function RadicarPage() {
       const url = await getRadicationPDFUrl(radicationNumber);
       setPdfUrl(url); setPdfRadNumber(radicationNumber);
     } catch (e: any) {
-      alert("No se pudo cargar el PDF: " + e.message);
+      toast.error("No se pudo cargar el PDF: " + e.message);
     } finally {
       setLoadingPdf(null);
     }
@@ -160,34 +159,49 @@ export default function RadicarPage() {
     const a = document.createElement("a");
     a.href = pdfUrl; a.download = `Radicado_${pdfRadNumber}.pdf`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    toast.success("PDF descargado");
   }
 
   // ── Handler archivar ──
   async function handleArchive(radicationNumber: string) {
-    if (!confirm(`¿Archivar el radicado ${radicationNumber}?`)) return;
-    try {
-      await archiveRadication(radicationNumber);
-      fetchData();
-    } catch (e: any) {
-      alert("Error al archivar: " + e.message);
-    }
+    toast(`¿Archivar el radicado ${radicationNumber}?`, {
+      action: {
+        label: "Archivar",
+        onClick: async () => {
+          try {
+            await archiveRadication(radicationNumber);
+            toast.success(`Radicado ${radicationNumber} archivado`);
+            fetchData();
+          } catch (e: any) {
+            toast.error("Error al archivar: " + e.message);
+          }
+        },
+      },
+      cancel: { label: "Cancelar", onClick: () => {} },
+    });
   }
 
   // ── Handler desarchivar ──
   async function handleUnarchive(radicationNumber: string) {
-    if (!confirm(`¿Desarchivar el radicado ${radicationNumber}? Volverá a aparecer en la lista activa.`)) return;
-    try {
-      await unarchiveRadication(radicationNumber);
-      fetchData();
-    } catch (e: any) {
-      alert("Error al desarchivar: " + e.message);
-    }
+    toast(`¿Desarchivar el radicado ${radicationNumber}?`, {
+      action: {
+        label: "Desarchivar",
+        onClick: async () => {
+          try {
+            await unarchiveRadication(radicationNumber);
+            toast.success(`Radicado ${radicationNumber} desarchivado`);
+            fetchData();
+          } catch (e: any) {
+            toast.error("Error al desarchivar: " + e.message);
+          }
+        },
+      },
+      cancel: { label: "Cancelar", onClick: () => {} },
+    });
   }
 
   return (
     <div className={styles.wrap}>
-
-      {/* ── Heading ── */}
       <div className={styles.heading}>
         <div>
           <p className={styles.eyebrow}>Gestión documental</p>
@@ -204,7 +218,6 @@ export default function RadicarPage() {
         </div>
       </div>
 
-      {/* ── Toolbar ── */}
       <div className={styles.toolbar}>
         <div className={styles.searchWrap}>
           <svg className={styles.searchIcon} width="14" height="14"
@@ -229,17 +242,14 @@ export default function RadicarPage() {
         </div>
       </div>
 
-      {/* ── Estados ── */}
       {loading && <p className={styles.stateMsg}>Cargando radicados...</p>}
-      {error   && <p className={`${styles.stateMsg} ${styles.stateMsgError}`}>{error}</p>}
-      {!loading && !error && datos.length === 0 && (
+      {!loading && datos.length === 0 && (
         <p className={styles.stateMsg}>
           {filtro === "Archivados" ? "No hay radicados archivados." : "Sin radicados para mostrar."}
         </p>
       )}
 
-      {/* ── Tabla ── */}
-      {!loading && !error && datos.length > 0 && (
+      {!loading && datos.length > 0 && (
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead>
@@ -257,15 +267,12 @@ export default function RadicarPage() {
               {datos.map((r) => {
                 const tipo = getTipo(r.radication_number);
                 return (
-                  <tr key={r.radication_number}
-                    className={styles.tr}
+                  <tr key={r.radication_number} className={styles.tr}
                     style={{ opacity: r.archived ? 0.6 : 1 }}>
 
                     <td className={`${styles.td} ${styles.tdId}`}>
                       {r.radication_number}
-                      {r.archived && (
-                        <span className={styles.archivedBadge}>Archivado</span>
-                      )}
+                      {r.archived && <span className={styles.archivedBadge}>Archivado</span>}
                     </td>
 
                     <td className={styles.td}>
@@ -278,15 +285,11 @@ export default function RadicarPage() {
                     <td className={styles.td}>{r.remitente ?? "—"}</td>
                     <td className={`${styles.td} ${styles.tdAsunto}`}>{r.subject}</td>
                     <td className={`${styles.td} ${styles.tdMuted}`}>{formatDate(r.created_at)}</td>
-
-                    <td className={styles.td}>
-                      <StatusTimeline status={r.status ?? "pending"} />
-                    </td>
+                    <td className={styles.td}><StatusTimeline status={r.status ?? "pending"} /></td>
 
                     <td className={styles.td}>
                       <div className={styles.acciones}>
 
-                        {/* Ver PDF */}
                         <button className={styles.accionBtn} title="Ver PDF"
                           onClick={() => handleViewPDF(r.radication_number)}
                           disabled={loadingPdf === r.radication_number}
@@ -306,7 +309,6 @@ export default function RadicarPage() {
                           )}
                         </button>
 
-                        {/* Ver rótulo */}
                         <button className={styles.accionBtn} title="Ver rótulo"
                           onClick={() => handleViewSticker(r.radication_number)}
                           disabled={loadingSticker === r.radication_number}
@@ -324,7 +326,6 @@ export default function RadicarPage() {
                           )}
                         </button>
 
-                        {/* Editar — navega a página de edición */}
                         {!r.archived && (
                           <button className={styles.accionBtn} title="Editar"
                             onClick={() => router.push(`/dashboard/radicar/edit/${encodeURIComponent(r.radication_number)}`)}>
@@ -335,12 +336,9 @@ export default function RadicarPage() {
                           </button>
                         )}
 
-                        {/* Archivar — solo si NO está archivado */}
                         {!r.archived && (
-                          <button
-                            className={`${styles.accionBtn} ${styles.accionDelete}`}
-                            title="Archivar"
-                            onClick={() => handleArchive(r.radication_number)}>
+                          <button className={`${styles.accionBtn} ${styles.accionDelete}`}
+                            title="Archivar" onClick={() => handleArchive(r.radication_number)}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <polyline points="21 8 21 21 3 21 3 8"/>
                               <rect x="1" y="3" width="22" height="5"/>
@@ -349,11 +347,8 @@ export default function RadicarPage() {
                           </button>
                         )}
 
-                        {/* Desarchivar — solo si está archivado */}
                         {r.archived && (
-                          <button
-                            className={styles.accionBtn}
-                            title="Desarchivar"
+                          <button className={styles.accionBtn} title="Desarchivar"
                             style={{ color: "#22c55e" }}
                             onClick={() => handleUnarchive(r.radication_number)}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
